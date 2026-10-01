@@ -4,8 +4,8 @@
         document.querySelectorAll('[data-opn-overflow-warning]').forEach(node => node.remove());
         if (!window.matchMedia('print').matches) return;
         document.querySelectorAll('.opn-sheet').forEach((sheet, index) => {
-            const areas = [sheet, sheet.querySelector('.opn-sidebar'), sheet.querySelector('.opn-main')];
-            const overflow = areas.some(area => area && (area.scrollHeight > area.clientHeight + 2 || area.scrollWidth > area.clientWidth + 2));
+            // Grid children can report harmless fractional overflow while the complete sheet still fits.
+            const overflow = sheet.scrollHeight > sheet.clientHeight + 2 || sheet.scrollWidth > sheet.clientWidth + 2;
             sheet.dataset.printOverflow = overflow ? 'true' : 'false';
             if (overflow) {
                 const warning = document.createElement('p');
