@@ -4,7 +4,7 @@
  * Plugin Name: Omni Platform Newsletter
  * Plugin URI: https://github.com/Ultimate-Multisite/omni-platform-newsletter
  * Description: Write one block newsletter for responsive web, email, and duplex print/PDF output.
- * Version: 0.1.1
+ * Version: 0.1.2
  * Requires at least: 6.9
  * Requires PHP: 8.2
  * Requires Plugins: newspack-newsletters, print-my-blog
@@ -19,7 +19,7 @@ namespace OmniPlatform\Newsletter;
 
 defined('ABSPATH') || exit;
 
-const VERSION = '0.1.1';
+const VERSION = '0.1.2';
 const ISSUE_META_KEY = '_omni_platform_newsletter_layout';
 
 /** Return post types supported by the current authoring adapter. */
