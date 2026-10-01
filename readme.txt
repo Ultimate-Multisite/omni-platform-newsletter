@@ -3,7 +3,7 @@ Contributors: superdav42
 Tags: newsletter, nonprofit, email, print, pdf, block editor
 Requires at least: 6.9
 Requires PHP: 8.2
-Stable tag: 0.1.2
+Stable tag: 0.1.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -27,6 +27,9 @@ configure a sending provider, import contacts, or send campaigns.
 5. Preview email and print exactly two Letter pages before sending or printing.
 
 == Changelog ==
+
+= 0.1.3 =
+* Add print-layout headroom for browser font and rounding differences.
 
 = 0.1.2 =
 * Preserve full overflow detection while fitting the starter front-page media budget.
