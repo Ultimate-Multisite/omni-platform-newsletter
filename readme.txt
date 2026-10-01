@@ -3,7 +3,7 @@ Contributors: superdav42
 Tags: newsletter, nonprofit, email, print, pdf, block editor
 Requires at least: 6.9
 Requires PHP: 8.2
-Stable tag: 0.1.0
+Stable tag: 0.1.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -27,6 +27,9 @@ configure a sending provider, import contacts, or send campaigns.
 5. Preview email and print exactly two Letter pages before sending or printing.
 
 == Changelog ==
+
+= 0.1.1 =
+* Avoid false print overflow warnings from fractional grid-child measurements.
 
 = 0.1.0 =
 * Initial Newspack authoring/email adapter and Print My Blog duplex layout.
