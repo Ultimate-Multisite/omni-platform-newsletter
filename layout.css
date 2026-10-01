@@ -72,6 +72,7 @@
     .opn-sidebar .opn-qr-pending { font-size: 9pt; padding: 0.12in; margin: 0.2in 0; }
     .opn-sidebar .opn-logo { margin-top: 0.2in; }
     .opn-main .opn-hero img { height: 1.9in; object-fit: cover; }
+    .opn-sheet--front .opn-main .opn-hero img { height: 1.65in; }
     .opn-main .opn-issue-label { font-size: 12pt; padding: 0.08in 0.14in; margin: 0; }
     .opn-main .opn-kicker { padding: 0.08in 0.14in 0; font-size: 13pt; margin-bottom: 0.02in; }
     .opn-main .opn-title { padding: 0 0.14in; font-size: 35pt; margin-bottom: 0.04in; }
