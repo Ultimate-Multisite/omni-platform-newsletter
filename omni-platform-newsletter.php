@@ -87,9 +87,11 @@ function renderIssue(\WP_Post $post): string
     return $html . '</div>';
 }
 
-add_filter('the_content', function ($content) {
+/** Replace opted-in newsletter content before WordPress renders blocks and shortcodes. */
+function filterWebContent(string $content): string
+{
     $post = get_post();
-    if (!isIssue($post) || is_admin()) {
+    if (!isIssue($post) || is_admin() || post_password_required($post)) {
         return $content;
     }
 
@@ -100,7 +102,9 @@ add_filter('the_content', function ($content) {
     }
 
     return renderIssue($post);
-}, 20);
+}
+
+add_filter('the_content', __NAMESPACE__ . '\\filterWebContent', 8);
 
 add_action('wp_enqueue_scripts', function () {
     $printPost = get_post(absint($_GET['pmb_p'] ?? 0));
@@ -113,19 +117,27 @@ add_action('wp_enqueue_scripts', function () {
 }, 1100);
 
 /** Lead email with primary stories and include shared details only once. */
-add_filter('newspack_newsletters_newsletter_content', function ($content, $post) {
+function filterNewsletterContent(string $content, $post): string
+{
     if (!isIssue($post)) {
         return $content;
     }
 
     $sections = sections($post);
     if (count($sections) !== 4) {
-        return $content;
+        wp_die(
+            esc_html__('Newsletter email was not generated because the required Sidebar, Front, Back and Footer sections are invalid.', 'omni-platform-newsletter'),
+            esc_html__('Newsletter layout error', 'omni-platform-newsletter'),
+            ['response' => 422]
+        );
+        return '';
     }
 
     $blocks = array_map(fn($role) => $sections[$role], ['front', 'back', 'sidebar', 'footer']);
     return serialize_blocks($blocks);
-}, 20, 2);
+}
+
+add_filter('newspack_newsletters_newsletter_content', __NAMESPACE__ . '\\filterNewsletterContent', 20, 2);
 
 add_filter('template_include', function ($template) {
     if (is_singular(supportedPostTypes()) && isIssue(get_post()) && !isset($_GET['print-my-blog'])) {

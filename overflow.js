@@ -1,7 +1,7 @@
 /* Never shrink or hide excess copy: explicitly flag a sheet that exceeds budget. */
 (() => {
     const check = () => {
-        document.querySelectorAll('.opn-layout-warning').forEach(node => node.remove());
+        document.querySelectorAll('[data-opn-overflow-warning]').forEach(node => node.remove());
         if (!window.matchMedia('print').matches) return;
         document.querySelectorAll('.opn-sheet').forEach((sheet, index) => {
             const areas = [sheet, sheet.querySelector('.opn-sidebar'), sheet.querySelector('.opn-main')];
@@ -10,6 +10,7 @@
             if (overflow) {
                 const warning = document.createElement('p');
                 warning.className = 'opn-layout-warning';
+                warning.dataset.opnOverflowWarning = 'true';
                 warning.setAttribute('role', 'alert');
                 warning.textContent = `Print side ${index + 1} exceeds its space budget. Shorten copy or reduce images before printing. No content has been hidden.`;
                 sheet.before(warning);

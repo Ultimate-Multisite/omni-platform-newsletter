@@ -25,6 +25,31 @@ function apply_filters($hook, $value)
     return $value;
 }
 
+function get_post()
+{
+    return $GLOBALS['test_post'] ?? null;
+}
+
+function is_admin(): bool
+{
+    return false;
+}
+
+function post_password_required($post): bool
+{
+    return $GLOBALS['password_required'] ?? false;
+}
+
+function esc_html__($text, $domain): string
+{
+    return $text;
+}
+
+function wp_die($message, $title = '', $args = []): void
+{
+    throw new RuntimeException($title . ': ' . $message, $args['response'] ?? 0);
+}
+
 function get_post_meta($id, $key, $single)
 {
     return $key === '_omni_platform_newsletter_layout' ? '1' : '';
@@ -75,6 +100,23 @@ assertTrue(OmniPlatform\Newsletter\sections($unexpected) === [], 'unexpected top
 $duplicate = clone $post;
 $duplicate->post_content[] = block('opn-source-front');
 assertTrue(OmniPlatform\Newsletter\sections($duplicate) === [], 'duplicate source section fails closed');
+
+$GLOBALS['test_post'] = $post;
+$GLOBALS['password_required'] = true;
+assertTrue(
+    OmniPlatform\Newsletter\filterWebContent('password form') === 'password form',
+    'password-protected issue preserves the WordPress password form'
+);
+$GLOBALS['password_required'] = false;
+
+$invalidEmail = clone $post;
+$invalidEmail->post_content = [block('opn-source-front')];
+try {
+    OmniPlatform\Newsletter\filterNewsletterContent('stored source', $invalidEmail);
+    assertTrue(false, 'invalid section contract stops email generation');
+} catch (RuntimeException $error) {
+    assertTrue($error->getCode() === 422, 'invalid section contract surfaces a validation error');
+}
 
 $pattern = OmniPlatform\Newsletter\starterPatternContent();
 foreach (['sidebar', 'front', 'back', 'footer'] as $role) {
