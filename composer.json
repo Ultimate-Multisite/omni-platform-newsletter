@@ -1,0 +1,63 @@
+{
+  "name": "ultimate-multisite/omni-platform-newsletter",
+  "description": "Write-once WordPress newsletters for responsive web, email, and duplex print/PDF output.",
+  "type": "wordpress-plugin",
+  "license": "GPL-2.0-or-later",
+  "keywords": [
+    "wordpress",
+    "newsletter",
+    "nonprofit",
+    "email",
+    "print",
+    "pdf"
+  ],
+  "authors": [
+    {
+      "name": "Ultimate Multisite Community",
+      "homepage": "https://ultimatemultisite.com"
+    }
+  ],
+  "require": {
+    "php": ">=8.2"
+  },
+  "require-dev": {
+    "squizlabs/php_codesniffer": "^3.13"
+  },
+  "homepage": "https://github.com/Ultimate-Multisite/omni-platform-newsletter",
+  "support": {
+    "issues": "https://github.com/Ultimate-Multisite/omni-platform-newsletter/issues",
+    "source": "https://github.com/Ultimate-Multisite/omni-platform-newsletter"
+  },
+  "archive": {
+    "exclude": [
+      "/.aidevops.json",
+      "/.github",
+      "/.gitattributes",
+      "/.gitignore",
+      "/AGENTS.md",
+      "/composer.lock",
+      "/phpcs.xml",
+      "/tests"
+    ]
+  },
+  "config": {
+    "allow-plugins": {},
+    "platform": {
+      "php": "8.2.0"
+    },
+    "preferred-install": "dist",
+    "sort-packages": true
+  },
+  "scripts": {
+    "lint:php": "php -l omni-platform-newsletter.php && php -l web-template.php && php -l tests/plugin-contract-test.php",
+    "lint:js": "node --check overflow.js",
+    "phpcs": "phpcs",
+    "test:contract": "php tests/plugin-contract-test.php",
+    "test": [
+      "@lint:php",
+      "@lint:js",
+      "@phpcs",
+      "@test:contract"
+    ]
+  }
+}

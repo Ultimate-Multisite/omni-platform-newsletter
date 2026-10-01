@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<ruleset name="Omni Platform Newsletter">
+  <description>PSR-12 checks for the plugin's namespaced PHP.</description>
+  <file>omni-platform-newsletter.php</file>
+  <file>web-template.php</file>
+  <file>tests</file>
+  <exclude-pattern>vendor/*</exclude-pattern>
+  <rule ref="PSR12"/>
+  <rule ref="PSR1.Files.SideEffects.FoundWithSymbols">
+    <severity>0</severity>
+  </rule>
+  <rule ref="PSR1.Classes.ClassDeclaration.MissingNamespace">
+    <exclude-pattern>tests/*</exclude-pattern>
+  </rule>
+  <rule ref="Squiz.Classes.ValidClassName.NotCamelCaps">
+    <exclude-pattern>tests/*</exclude-pattern>
+  </rule>
+  <rule ref="Generic.Files.LineLength.TooLong">
+    <severity>0</severity>
+  </rule>
+  <arg name="colors"/>
+</ruleset>

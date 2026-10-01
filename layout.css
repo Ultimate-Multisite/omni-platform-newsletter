@@ -1,0 +1,92 @@
+.opn-newsletter-view { margin: 0; background: #e8e9ed; }
+.opn-newsletter-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 16px 24px; background: #fff; font: 14px/1.5 Arial, sans-serif; }
+.opn-newsletter-toolbar a { color: #313650; padding: 10px; text-decoration: underline; }
+.opn-newsletter-toolbar button { padding: 10px 16px; min-height: 44px; border: 1px solid #313650; border-radius: 4px; background: white; color: #313650; cursor: pointer; }
+.opn-newsletter-toolbar :focus-visible { outline: 3px solid #313650; outline-offset: 3px; }
+.opn-issue { --opn-sidebar: #565e70; --opn-dark: #323650; --opn-accent: #ffda36; --opn-footer: #101010; --opn-text: #111; max-width: 1000px; margin: 24px auto; font-family: Arial, sans-serif; }
+.opn-sheet { display: grid; grid-template-columns: 26% 74%; grid-template-rows: 1fr auto; background: #fff; margin-bottom: 24px; box-shadow: 0 3px 12px #0002; color: var(--opn-text); }
+.opn-sheet * { box-sizing: border-box; }
+.opn-sheet p { margin: 0 0 12px; line-height: 1.4; }
+.opn-sheet h1, .opn-sheet h2, .opn-sheet h3 { line-height: 1.15; margin: 0 0 12px; }
+.opn-sheet figure { margin: 0; }
+.opn-sheet img { display: block; width: 100%; max-width: 100%; height: auto; }
+.opn-sheet .wp-block-columns { display: flex; gap: 18px; margin: 0; }
+.opn-sheet .wp-block-column { flex: 1; min-width: 0; }
+.opn-sidebar { background: var(--opn-sidebar); color: white; padding: 24px 20px; font-size: 16px; }
+.opn-sidebar h2 { color: var(--opn-accent); font-size: 19px; margin-top: 28px; }
+.opn-sidebar a { color: white; overflow-wrap: anywhere; }
+.opn-sidebar .opn-motto { text-align: center; font-size: 27px; line-height: 1.25; margin: 6px 0 36px; }
+.opn-sidebar .opn-contact-card { background: var(--opn-dark); margin: 0 -20px 22px; padding: 20px; }
+.opn-sidebar .opn-contact-card h2 { margin-top: 0; }
+.opn-sidebar .opn-logo { margin-top: 22px; }
+.opn-sidebar .opn-qr-pending { border: 1px dashed var(--opn-accent); padding: 14px; margin: 24px 0; font-size: 14px; }
+.opn-main { min-width: 0; }
+.opn-main .opn-hero img { height: 230px; object-fit: cover; }
+.opn-main .opn-issue-label { background: var(--opn-accent); color: var(--opn-dark); padding: 10px 18px; text-align: right; font-size: 18px; font-weight: 700; }
+.opn-main .opn-kicker { padding: 14px 18px 0; color: var(--opn-dark); font-size: 20px; font-weight: 700; }
+.opn-main .opn-title { padding: 0 18px; font-size: clamp(28px, 4.5vw, 56px); color: var(--opn-dark); }
+.opn-main .opn-story { padding: 14px 18px 18px; font-size: 18px; }
+.opn-main .opn-story h2 { font-size: 24px; color: var(--opn-dark); }
+.opn-main .opn-story .wp-block-image { margin-bottom: 12px; }
+.opn-main .opn-story img { max-height: 210px; object-fit: cover; }
+.opn-main .opn-callout { padding: 18px; background: var(--opn-dark); color: white; }
+.opn-main .opn-callout h2 { color: var(--opn-accent); font-size: 22px; }
+.opn-main .opn-callout p { margin: 0 0 6px; font-size: 16px; }
+.opn-main .opn-callout ul { padding-left: 20px; margin: 0; font-size: 16px; line-height: 1.45; }
+.opn-sheet-footer { grid-column: 1 / -1; background: var(--opn-footer); color: white; padding: 12px 18px; font-size: 11px; }
+.opn-sheet-footer p { margin: 0; }
+.opn-layout-warning { padding: 16px; background: #fff3cd; color: #342800; font: 16px/1.5 Arial, sans-serif; border: 2px solid #9c6b00; }
+@media screen and (max-width: 700px) {
+    .opn-issue { margin: 16px; }
+    .opn-sheet { display: flex; flex-direction: column; }
+    .opn-sidebar { padding: 20px; }
+    .opn-sheet--front .opn-sidebar { display: none; }
+    .opn-main { order: 1; }
+    .opn-sidebar { order: 2; }
+    .opn-sheet-footer { order: 3; }
+    .opn-sidebar .opn-motto { font-size: 24px; margin-bottom: 20px; }
+    .opn-sheet .wp-block-columns { flex-direction: column; }
+    .opn-sheet .wp-block-column { flex-basis: auto !important; }
+    .opn-main .opn-title { font-size: 34px; }
+    .opn-main .opn-story { font-size: 18px; }
+    .opn-main .opn-story img { max-height: none; }
+}
+@page { size: letter portrait; margin: 0.25in; }
+@media print {
+    html, body { margin: 0 !important; padding: 0 !important; background: white !important; }
+    * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .opn-newsletter-toolbar, #wpadminbar { display: none !important; }
+    .opn-issue { width: 8in; max-width: none; margin: 0; }
+    .opn-sheet { width: 8in; height: 10.49in; margin: 0; box-shadow: none; grid-template-rows: minmax(0, 1fr) 0.3in; break-after: page; break-inside: avoid; }
+    .opn-sheet:last-child { break-after: auto; }
+    .opn-issue .opn-sheet p { margin: 0 0 0.06in; line-height: 1.32; font-size: inherit; text-indent: 0 !important; text-align: left; }
+    .opn-issue .wp-block-group, .opn-issue .wp-block-columns, .opn-issue .wp-block-column { margin-block: 0 !important; }
+    .opn-issue .opn-sheet h1, .opn-issue .opn-sheet h2, .opn-issue .opn-sheet h3 { font-family: Arial, sans-serif; font-weight: 700; margin: 0 0 0.07in; }
+    .opn-sheet .wp-block-columns { gap: 0.14in; flex-direction: row; flex-wrap: nowrap !important; }
+    .opn-sheet .wp-block-columns > .wp-block-column { flex-basis: 0 !important; flex-grow: 1; }
+    .opn-sidebar { padding: 0.18in 0.16in; font-size: 10.8pt; }
+    .opn-sheet--back .opn-sidebar { display: block; }
+    .opn-sidebar h2 { font-size: 12pt; margin-top: 0.22in; }
+    .opn-sidebar .opn-motto { font-size: 19pt; margin: 0.08in 0 0.28in; }
+    .opn-sidebar .opn-contact-card { padding: 0.16in; margin: 0 -0.16in 0.16in; }
+    .opn-sidebar .opn-qr-pending { font-size: 9pt; padding: 0.12in; margin: 0.2in 0; }
+    .opn-sidebar .opn-logo { margin-top: 0.2in; }
+    .opn-main .opn-hero img { height: 1.9in; object-fit: cover; }
+    .opn-main .opn-issue-label { font-size: 12pt; padding: 0.08in 0.14in; margin: 0; }
+    .opn-main .opn-kicker { padding: 0.08in 0.14in 0; font-size: 13pt; margin-bottom: 0.02in; }
+    .opn-main .opn-title { padding: 0 0.14in; font-size: 35pt; margin-bottom: 0.04in; }
+    .opn-main .opn-story { padding: 0.08in 0.16in 0.12in; font-size: 11.4pt; }
+    .opn-main .opn-story h2 { font-size: 17pt; }
+    .opn-main .opn-story img { max-height: 1.65in; object-fit: cover; }
+    .opn-sheet--front .opn-story .wp-block-column:first-child img { max-height: 1.15in; }
+    .opn-main .opn-story .wp-block-image { margin-bottom: 0.08in; }
+    .opn-issue .opn-main .opn-callout { padding: 0.13in 0.16in; font-size: 10.4pt; }
+    .opn-main .opn-callout h2 { font-size: 14pt; margin-bottom: 0.06in; }
+    .opn-main .opn-callout p, .opn-main .opn-callout ul { font-size: 10.4pt; line-height: 1.35; }
+    .opn-main .opn-callout ul { padding-left: 0.16in; }
+    .opn-sheet-footer { padding: 0.08in 0.14in; font-size: 7.5pt; }
+    .pmb-print-page .pmb-post, .pmb-print-page .pmb-posts, .pmb-print-page .pmb-main { margin: 0 !important; padding: 0 !important; max-width: none !important; }
+    .pmb-print-page .pmb-post-title, .pmb-print-page .pmb-post-meta, .pmb-print-page .pmb-print-page-header { display: none !important; }
+    .pmb-pro-print-page header.entry-header, .pmb-pro-print-page .pmb-title { display: none !important; }
+    .pmb-print-page .pmb-main-matter, .pmb-print-page .pmb-article-wrapper, .pmb-print-page .pmb-article, .pmb-print-page .entry-content { margin: 0 !important; padding: 0 !important; max-width: none !important; }
+}
