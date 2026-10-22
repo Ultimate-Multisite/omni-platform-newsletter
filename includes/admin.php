@@ -179,8 +179,10 @@ function newIssueContent(): string
             continue;
         }
         $classes = preg_split('/\s+/', $block['attrs']['className'] ?? '');
-        $blocks[] = in_array('opn-source-sidebar', $classes, true) ? $shared['sidebar']
+        $next = in_array('opn-source-sidebar', $classes, true) ? $shared['sidebar']
             : (in_array('opn-source-footer', $classes, true) ? $shared['footer'] : $block);
+        $next['attrs']['lock'] = ['move' => true, 'remove' => true];
+        $blocks[] = $next;
     }
 
     return serialize_blocks($blocks);
@@ -190,14 +192,71 @@ add_filter('default_content', function ($content, $post) {
     return $post instanceof \WP_Post && $post->post_type === 'newspack_nl_cpt' && trim((string) $content) === '' ? newIssueContent() : $content;
 }, 10, 2);
 
+// Newspack titles new newsletters with today's date; a month name reads better for a monthly letter.
 add_filter('default_title', function ($title, $post) {
-    if ($post instanceof \WP_Post && $post->post_type === 'newspack_nl_cpt' && $title === '') {
+    if ($post instanceof \WP_Post && $post->post_type === 'newspack_nl_cpt') {
         /* translators: %s: month and year */
         return sprintf(__('%s Newsletter', 'omni-platform-newsletter'), wp_date('F Y'));
     }
 
     return $title;
-}, 10, 2);
+}, 20, 2);
+
+/** The issue's look comes from Omni's own template, so a theme template choice would only mislead. */
+add_filter('block_editor_settings_all', function (array $settings, $context) {
+    $post = $context->post ?? null;
+    if ($post instanceof \WP_Post && $post->post_type === 'newspack_nl_cpt' && !currentUserManagesEngines()) {
+        $settings['availableTemplates'] = [];
+        $settings['supportsTemplateMode'] = false;
+    }
+
+    return $settings;
+}, 20, 2);
+
+/** In the editor canvas, label each section with where it appears. */
+function enqueueCanvasLabels(): void
+{
+    // Runs while WordPress collects the iframe canvas assets, where the screen may not be set yet.
+    $post = get_post();
+    if (!is_admin() || !$post instanceof \WP_Post || $post->post_type !== 'newspack_nl_cpt') {
+        return;
+    }
+
+    $labels = [
+        'sidebar' => __('Sidebar · printed beside both pages, and once at the end of the email', 'omni-platform-newsletter'),
+        'front' => __('Front page', 'omni-platform-newsletter'),
+        'back' => __('Back page', 'omni-platform-newsletter'),
+        'footer' => __('Footer · printed at the bottom of both pages', 'omni-platform-newsletter'),
+    ];
+    $tints = ['sidebar' => '#eef0f6', 'front' => '#ffffff', 'back' => '#ffffff', 'footer' => '#f3f3f3'];
+    $css = '';
+    foreach ($labels as $role => $label) {
+        $selector = '.editor-styles-wrapper .opn-source-' . $role;
+        $css .= $selector . '{position:relative;margin:28px 0!important;padding:34px 18px 14px!important;border:2px dashed #a7aab4;border-radius:8px;background:' . $tints[$role] . ';}'
+            . $selector . '::before{content:' . wp_json_encode($label, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . ';position:absolute;top:8px;left:14px;font:600 12px/1.3 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:.04em;text-transform:uppercase;color:#2a4f9c;}';
+    }
+
+    // Omni flattens story and callout groups for email (see emailBlocks()), so Newspack's
+    // "Nested group" warning does not apply inside the four sections.
+    $css .= '.editor-styles-wrapper [class*="opn-source-"] .newspack-newsletters__editor-block__warning{display:none;}';
+
+    wp_register_style('omni-platform-newsletter-canvas', false, [], VERSION);
+    wp_enqueue_style('omni-platform-newsletter-canvas');
+    wp_add_inline_style('omni-platform-newsletter-canvas', $css);
+}
+
+add_action('enqueue_block_assets', __NAMESPACE__ . '\\enqueueCanvasLabels');
+// Newspack strips canvas assets that are not on its allowlist.
+add_filter('newspack_newsletters_allowed_editor_actions', fn(array $actions) => [...$actions, __NAMESPACE__ . '\\enqueueCanvasLabels']);
+
+/** Print My Blog's editor buttons and post-type switcher are engine tools. */
+add_action('enqueue_block_editor_assets', function () {
+    $post = get_post();
+    if ($post instanceof \WP_Post && $post->post_type === 'newspack_nl_cpt' && !currentUserManagesEngines()) {
+        wp_dequeue_script('pmb_blockeditor');
+        wp_dequeue_style('pmb_blockeditor');
+    }
+}, 100);
 
 /** Every new issue skips Newspack's layout picker and uses the duplex layout. */
 add_action('save_post_newspack_nl_cpt', function ($id, $post, $update) {
@@ -208,6 +267,9 @@ add_action('save_post_newspack_nl_cpt', function ($id, $post, $update) {
     update_post_meta($id, 'template_id', 0);
     update_post_meta($id, ISSUE_META_KEY, '1');
     update_post_meta($id, 'is_public', getSetting('publish_web') ? '1' : '');
+    // Match the printed letter's typeface (Newspack defaults the email body to Georgia).
+    update_post_meta($id, 'font_header', 'Arial');
+    update_post_meta($id, 'font_body', 'Arial');
 }, 20, 3);
 
 /** Copy an issue into a new draft: the quickest way to start next month's edition. */
@@ -522,6 +584,18 @@ add_action('enqueue_block_editor_assets', function () {
 
     $deps = ['wp-plugins', 'wp-editor', 'wp-edit-post', 'wp-element', 'wp-components', 'wp-data', 'wp-api-fetch', 'wp-i18n', 'wp-url', 'wp-notices', 'wp-dom-ready'];
     wp_enqueue_script('omni-platform-newsletter-editor', plugins_url('assets/editor.js', __DIR__ . '/../omni-platform-newsletter.php'), $deps, VERSION, true);
+    wp_enqueue_style('omni-platform-newsletter-admin', plugins_url('assets/admin.css', __DIR__ . '/../omni-platform-newsletter.php'), [], VERSION);
+
+    if (!currentUserManagesEngines()) {
+        // Newspack's publish dialog offers ad insertion and HTML for an external provider.
+        // Neither applies here: keep the preview and the buttons, and say what Publish does.
+        $explain = __('Publishing puts this newsletter on your website. It does not email anyone; use “Send to subscribers” in the newsletter panel for that.', 'omni-platform-newsletter');
+        wp_add_inline_style(
+            'omni-platform-newsletter-admin',
+            '.opn-simple-editor .newspack-newsletters__modal__content > :not(.modal-buttons){display:none!important;}'
+            . '.opn-simple-editor .newspack-newsletters__modal__content::before{content:' . wp_json_encode($explain, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . ';display:block;margin:0 0 20px;font-size:15px;line-height:1.5;}'
+        );
+    }
 
     $lists = [];
     foreach (deliveryLists() as $id => $name) {

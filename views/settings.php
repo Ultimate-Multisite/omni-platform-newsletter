@@ -18,6 +18,7 @@ $defaultLists = defaultAudience();
 ?>
 <div class="wrap opn-admin">
     <h1><?php esc_html_e('Newsletter settings', 'omni-platform-newsletter'); ?></h1>
+    <hr class="wp-header-end">
     <?php renderNotice(); ?>
 
     <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="opn-settings">
@@ -33,6 +34,10 @@ $defaultLists = defaultAudience();
                 <p><label for="opn-reply-to"><?php esc_html_e('Replies go to', 'omni-platform-newsletter'); ?></label><br>
                     <input id="opn-reply-to" class="regular-text" type="email" name="reply_to" value="<?php echo esc_attr((string) ($main['reply_to'] ?? '')); ?>" placeholder="<?php esc_attr_e('name@example.org', 'omni-platform-newsletter'); ?>">
                     <br><span class="description"><?php esc_html_e('When a subscriber clicks Reply, their message goes to this address.', 'omni-platform-newsletter'); ?></span></p>
+                <?php $sender = senderEmail(); ?>
+                <p><?php esc_html_e('Sending address', 'omni-platform-newsletter'); ?><br>
+                    <code><?php echo esc_html($sender !== '' ? $sender : __('Not set up yet — contact support', 'omni-platform-newsletter')); ?></code>
+                    <br><span class="description"><?php esc_html_e('Set by your hosting provider so your newsletters are trusted by email services.', 'omni-platform-newsletter'); ?></span></p>
                 <?php if ($lists) : ?>
                     <fieldset><legend><?php esc_html_e('Send newsletters to', 'omni-platform-newsletter'); ?></legend>
                         <p class="description"><?php esc_html_e('Leave all unchecked to send to every subscriber. You can change this for each newsletter before sending.', 'omni-platform-newsletter'); ?></p>

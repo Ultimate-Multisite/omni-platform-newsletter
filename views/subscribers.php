@@ -27,6 +27,7 @@ $pages = max(1, (int) ceil($found / $perPage));
             <a class="button" href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=opn_export_subscribers'), 'opn_export_subscribers')); ?>"><?php esc_html_e('Download as spreadsheet (CSV)', 'omni-platform-newsletter'); ?></a>
         <?php endif; ?>
     </div>
+    <hr class="wp-header-end">
     <?php renderNotice(); ?>
 
     <?php if (!deliveryAvailable()) : ?>

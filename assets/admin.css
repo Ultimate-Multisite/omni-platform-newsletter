@@ -35,7 +35,7 @@ a.opn-card:hover, a.opn-card:focus { border-color: #2271b1; box-shadow: 0 0 0 1p
 .opn-notice p { font-size: 14px; }
 
 /* Editor panel */
-.opn-panel__heading { margin: 16px 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: #50575e; }
+.opn-panel__heading { margin: 22px 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: #50575e; }
 .opn-panel .opn-panel__heading:first-of-type { margin-top: 4px; }
 .opn-panel__status { display: flex; align-items: center; gap: 6px; margin: 4px 0 8px; }
 .opn-panel__status--sent { color: #1a5e2a; font-weight: 600; }

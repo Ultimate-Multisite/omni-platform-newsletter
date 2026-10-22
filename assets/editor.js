@@ -28,6 +28,14 @@
     /* Panels that are not useful for a newsletter (engine users keep them). */
     if (!data.engines) {
         wp.domReady(() => {
+            // Newspack's layout/visibility sidebar, ads, and debug tools. Its MJML plugin
+            // (which builds the email version on save) and editor buttons stay registered.
+            ['newspack-newsletters-sidebar', 'newspack-newsletters-ads-settings', 'newspack-newsletters-debug-send', 'block-directory', 'post-type-switcher']
+                .forEach((name) => {
+                    if (wp.plugins.getPlugin(name)) {
+                        wp.plugins.unregisterPlugin(name);
+                    }
+                });
             const editor = dispatch('core/editor');
             if (editor && editor.removeEditorPanel) {
                 ['taxonomy-panel-category', 'taxonomy-panel-post_tag', 'taxonomy-panel-newspack_nl_advertiser', 'post-excerpt', 'discussion-panel', 'page-attributes', 'template']
@@ -237,6 +245,9 @@
                 summary && summary.webUrl
                     ? el(ExternalLink, { href: summary.webUrl }, __('View on your website', td))
                     : (status === 'publish' ? __('Published privately (not on your website).', td) : __('Not on your website yet. Click “Publish” when it is ready.', td))),
+            status !== 'publish' && el('p', { className: 'opn-panel__hint' },
+                __('Publishing puts it on your website only. It does not email anyone.', td),
+                data.socialEnabled ? ' ' + __('It is also shared on your connected social media accounts.', td) : ''),
 
             el('h3', { className: 'opn-panel__heading' }, __('Print', td)),
             el(Button, { variant: 'secondary', onClick: openPrint, className: 'opn-wide' }, __('Print / Save as PDF', td)),
@@ -251,6 +262,12 @@
                     placeholder: title,
                     help: __('Leave blank to use the newsletter title.', td),
                     onChange: (value) => editPost({ meta: { _omni_platform_newsletter_subject: value } }),
+                }),
+                'preview_text' in meta && el(TextControl, {
+                    label: __('Inbox preview text', td),
+                    value: meta.preview_text || '',
+                    help: __('Shown after the subject in most inboxes. Filled in from your front page until you change it.', td),
+                    onChange: (value) => editPost({ meta: { preview_text: value } }),
                 }),
                 summary && el('p', { className: 'opn-panel__status opn-panel__status--' + summary.delivery.state },
                     ['sending', 'queued'].includes(summary.delivery.state) && el(Spinner, null),
@@ -290,7 +307,22 @@
         render: () => el(Fragment, null, el(Panel), el(PrePublish), el(PostPublish)),
     });
 
+    /* The newsletter panel is the main way to publish, print and email: always start with it open. */
+    wp.domReady(() => {
+        const panel = 'omni-platform-newsletter/omni-newsletter';
+        const editor = select('core/editor');
+        if (editor && editor.isEditorPanelOpened && !editor.isEditorPanelOpened(panel)) {
+            dispatch('core/editor').toggleEditorPanelOpened(panel);
+        }
+    });
+
     if (data.copied) {
-        wp.domReady(() => dispatch('core/notices').createNotice('success', __('This is a copy. Update the front and back pages, then publish or send it.', td), { isDismissible: true }));
+        // Wait until the editor has loaded the post; notices created earlier are cleared on load.
+        const unsubscribe = wp.data.subscribe(() => {
+            if (select('core/editor').getCurrentPostId() && select('core/block-editor').getBlocks().length) {
+                unsubscribe();
+                setTimeout(() => dispatch('core/notices').createNotice('success', __('This is a copy. Update the front and back pages, then publish or send it.', td), { isDismissible: true, id: 'opn-copied' }), 500);
+            }
+        });
     }
 }(window.wp, window.omniNewsletter));

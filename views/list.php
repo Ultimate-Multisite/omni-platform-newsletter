@@ -21,6 +21,7 @@ $hasPublic = (bool) array_filter($issues, fn($issue) => webUrl($issue) !== '');
         <h1><?php esc_html_e('Newsletters', 'omni-platform-newsletter'); ?></h1>
         <a class="button button-primary button-hero" href="<?php echo esc_url(newIssueUrl()); ?>"><?php esc_html_e('Write a newsletter', 'omni-platform-newsletter'); ?></a>
     </div>
+    <hr class="wp-header-end">
     <?php renderNotice(); ?>
 
     <p class="opn-lead"><?php esc_html_e('Write each newsletter once. From the editor you can publish it on your website, email it to your subscribers, and print it as a two-page, front-and-back letter.', 'omni-platform-newsletter'); ?></p>

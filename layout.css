@@ -25,7 +25,7 @@
 .opn-sheet { display: grid; grid-template-columns: 26% 74%; grid-template-rows: 1fr auto; background: #fff; margin-bottom: 24px; box-shadow: 0 3px 12px #0002; color: var(--opn-text); }
 .opn-sheet * { box-sizing: border-box; }
 .opn-sheet p { margin: 0 0 12px; line-height: 1.4; }
-.opn-sheet h1, .opn-sheet h2, .opn-sheet h3 { line-height: 1.15; margin: 0 0 12px; }
+.opn-sheet h1, .opn-sheet h2, .opn-sheet h3 { line-height: 1.15; margin: 0 0 12px; font-family: Arial, Helvetica, sans-serif; font-weight: 700; }
 .opn-sheet figure { margin: 0; }
 .opn-sheet img { display: block; width: 100%; max-width: 100%; height: auto; }
 .opn-sheet .wp-block-columns { display: flex; gap: 18px; margin: 0; }
@@ -75,7 +75,8 @@
 .opn-print-mode .opn-issue { width: 8in; max-width: none; margin: 24px auto; }
 .opn-print-mode .opn-sheet { width: 8in; height: 10.49in; grid-template-rows: minmax(0, 1fr) 0.3in; break-after: page; break-inside: avoid; }
 .opn-print-mode .opn-sheet:last-child { break-after: auto; }
-.opn-print-mode .opn-issue .opn-sheet p { margin: 0 0 0.06in; line-height: 1.32; font-size: inherit; text-indent: 0 !important; text-align: left; }
+/* Low specificity so classed paragraphs (motto, issue date, kicker) keep their own sizes. */
+.opn-print-mode :where(.opn-issue .opn-sheet) p { margin: 0 0 0.06in; line-height: 1.32; font-size: inherit; text-indent: 0 !important; text-align: left; }
 .opn-print-mode .opn-issue .wp-block-group, .opn-print-mode .opn-issue .wp-block-columns, .opn-print-mode .opn-issue .wp-block-column { margin-block: 0 !important; }
 .opn-print-mode .opn-issue .opn-sheet h1, .opn-print-mode .opn-issue .opn-sheet h2, .opn-print-mode .opn-issue .opn-sheet h3 { font-family: Arial, sans-serif; font-weight: 700; margin: 0 0 0.07in; }
 .opn-print-mode .opn-sheet .wp-block-columns { gap: 0.14in; flex-direction: row; flex-wrap: nowrap !important; }

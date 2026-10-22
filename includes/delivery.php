@@ -96,6 +96,36 @@ function subscriberStats(): array
     return $stats;
 }
 
+/**
+ * The address newsletters are sent from.
+ *
+ * The Newsletter plugin sends with an empty From header (which every mail
+ * transport rejects) when its sender address was never set, for example on a
+ * site cloned from a template. Fall back to WordPress's own From address, which
+ * hosting platforms already filter to a verified sender.
+ */
+function senderEmail(): string
+{
+    if (!deliveryAvailable()) {
+        return '';
+    }
+
+    $main = (array) get_option('newsletter_main', []);
+    $current = sanitize_email((string) ($main['sender_email'] ?? ''));
+    if (is_email($current)) {
+        return $current;
+    }
+
+    $host = (string) preg_replace('/^www\./', '', (string) wp_parse_url(home_url(), PHP_URL_HOST));
+    $fallback = sanitize_email((string) apply_filters('wp_mail_from', 'wordpress@' . $host));
+    if (is_email($fallback)) {
+        $main['sender_email'] = $fallback;
+        update_option('newsletter_main', $main);
+    }
+
+    return is_email($fallback) ? $fallback : '';
+}
+
 /** Default audience (list IDs) chosen in settings; empty means all confirmed subscribers. */
 function defaultAudience(): array
 {
@@ -118,6 +148,49 @@ function recordEmailSource(int $metaId, int $postId, string $metaKey): void
 
 add_action('added_post_meta', fn($metaId, $postId, $metaKey) => recordEmailSource((int) $metaId, (int) $postId, (string) $metaKey), 10, 3);
 add_action('updated_post_meta', fn($metaId, $postId, $metaKey) => recordEmailSource((int) $metaId, (int) $postId, (string) $metaKey), 10, 3);
+
+const PREVIEW_AUTO_META = '_omni_platform_newsletter_preview_auto';
+
+/**
+ * Inbox preview text ("preheader") from the front page.
+ *
+ * Newspack otherwise uses the start of the post, which is the sidebar (motto
+ * and contact details). Text the author typed is kept; only text this plugin
+ * generated is refreshed when the front page changes.
+ */
+function refreshPreviewText(int $postId): void
+{
+    $post = get_post($postId);
+    if (!$post instanceof \WP_Post || wp_is_post_revision($postId) || !isIssue($post)) {
+        return;
+    }
+
+    $sections = sections($post);
+    if (!isset($sections['front'])) {
+        return;
+    }
+
+    $current = (string) get_post_meta($postId, 'preview_text', true);
+    $lastAuto = (string) get_post_meta($postId, PREVIEW_AUTO_META, true);
+    if ($current !== '' && $current !== $lastAuto) {
+        return;
+    }
+
+    // Skip the masthead (issue date, kicker, title): the subject line already says it.
+    $body = array_filter($sections['front']['innerBlocks'] ?? [], fn($block) => !array_intersect(
+        preg_split('/\s+/', (string) ($block['attrs']['className'] ?? '')),
+        ['opn-issue-label', 'opn-kicker', 'opn-title']
+    ));
+    $html = implode(' ', array_map('serialize_block', $body ?: [$sections['front']]));
+    $text = trim((string) preg_replace('/\s+/', ' ', wp_strip_all_tags(str_replace('</', ' </', $html))));
+    $preview = wp_trim_words($text, 28, '…');
+    update_post_meta($postId, 'preview_text', $preview);
+    update_post_meta($postId, PREVIEW_AUTO_META, $preview);
+}
+
+// Before Newspack builds the email version (it does so right after the save request).
+add_action('save_post_newspack_nl_cpt', fn($id) => refreshPreviewText((int) $id), 30);
+add_action('rest_after_insert_newspack_nl_cpt', fn($post) => refreshPreviewText((int) $post->ID), 30);
 
 /** Email subject: the explicit subject, otherwise the newsletter title. */
 function emailSubject(\WP_Post $post): string
@@ -214,6 +287,9 @@ function sendTest(\WP_Post $post, string $address): true|\WP_Error
     if (is_wp_error($html)) {
         return $html;
     }
+    if (senderEmail() === '') {
+        return new \WP_Error('opn_sender', __('Email sending is not set up on this site yet. Please contact support.', 'omni-platform-newsletter'));
+    }
 
     $newsletter = \Newsletter::instance();
     $email = (object) deliveryRecord($post, $html, []);
@@ -224,9 +300,18 @@ function sendTest(\WP_Post $post, string $address): true|\WP_Error
     $recipient = $newsletter->get_user($address) ?: $newsletter->get_dummy_user();
     $recipient->email = $address;
 
+    // The Newsletter plugin reports success even when wp_mail() fails; listen for the failure.
+    $failure = null;
+    $listen = function ($error) use (&$failure) {
+        $failure = $error;
+    };
+    add_action('wp_mail_failed', $listen);
     $result = $newsletter->send($email, [$recipient], true);
-    if (is_wp_error($result)) {
-        return new \WP_Error('opn_send', __('The test email could not be sent. Please try again or contact support.', 'omni-platform-newsletter'), $result->get_error_message());
+    remove_action('wp_mail_failed', $listen);
+
+    if (is_wp_error($result) || $failure instanceof \WP_Error) {
+        $detail = is_wp_error($result) ? $result->get_error_message() : $failure->get_error_message();
+        return new \WP_Error('opn_send', __('The test email could not be sent. Please try again or contact support.', 'omni-platform-newsletter'), $detail);
     }
 
     update_post_meta($post->ID, '_omni_platform_newsletter_last_test', ['to' => $address, 'at' => time()]);
@@ -254,6 +339,10 @@ function deliveryStatus(\WP_Post $post): array
         'error' => 'error',
         default => 'queued',
     };
+    // The Newsletter plugin marks a campaign finished on its next run; every recipient delivered means sent.
+    if ($state === 'sending' && (int) $email->total > 0 && (int) $email->sent >= (int) $email->total) {
+        $state = 'sent';
+    }
 
     return [
         'state' => $state,
@@ -284,6 +373,9 @@ function sendCampaign(\WP_Post $post, array $lists, bool $again = false): array|
     $html = emailHtml($post);
     if (is_wp_error($html)) {
         return $html;
+    }
+    if (senderEmail() === '') {
+        return new \WP_Error('opn_sender', __('Email sending is not set up on this site yet. Please contact support.', 'omni-platform-newsletter'));
     }
 
     $lists = array_values(array_intersect(array_map('intval', $lists), array_keys(deliveryLists())));
