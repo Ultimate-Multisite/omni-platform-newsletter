@@ -1,8 +1,26 @@
+/*
+ * Newsletter web, print-preview, and print layout.
+ * `.opn-print-mode` (the ?opn_view=print page, and any page while printing)
+ * lays the issue out as two US Letter sheets. overflow.js adds the class
+ * before the browser prints, so on-screen preview and paper share one set of rules.
+ */
 .opn-newsletter-view { margin: 0; background: #e8e9ed; }
-.opn-newsletter-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 16px 24px; background: #fff; font: 14px/1.5 Arial, sans-serif; }
-.opn-newsletter-toolbar a { color: #313650; padding: 10px; text-decoration: underline; }
-.opn-newsletter-toolbar button { padding: 10px 16px; min-height: 44px; border: 1px solid #313650; border-radius: 4px; background: white; color: #313650; cursor: pointer; }
+.opn-newsletter-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 12px 24px; background: #fff; font: 15px/1.5 Arial, sans-serif; border-bottom: 1px solid #d7d9e0; }
+.opn-newsletter-toolbar a { color: #313650; padding: 8px 4px; text-decoration: underline; }
+.opn-newsletter-toolbar .opn-site-link { font-weight: 700; text-decoration: none; }
+.opn-toolbar-spacer { flex: 1; }
+.opn-newsletter-toolbar button { padding: 10px 16px; min-height: 44px; border: 1px solid #313650; border-radius: 4px; background: white; color: #313650; cursor: pointer; font: inherit; }
+.opn-newsletter-toolbar .opn-button-primary { background: #313650; color: #fff; font-weight: 700; }
 .opn-newsletter-toolbar :focus-visible { outline: 3px solid #313650; outline-offset: 3px; }
+.opn-print-toolbar { position: sticky; top: 0; z-index: 10; display: block; }
+.opn-print-toolbar__main { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.opn-fit-status { padding: 4px 12px; border-radius: 999px; font-weight: 700; }
+.opn-fit-status[data-state="fits"] { background: #e7f5ea; color: #1a5e2a; }
+.opn-fit-status[data-state="overflow"] { background: #fcecec; color: #8a1f1f; }
+.opn-print-help { margin-top: 6px; font-size: 14px; }
+.opn-print-help summary { cursor: pointer; color: #313650; text-decoration: underline; }
+.opn-print-help ul { margin: 6px 0 0; padding-left: 20px; }
+
 .opn-issue { --opn-sidebar: #565e70; --opn-dark: #323650; --opn-accent: #ffda36; --opn-footer: #101010; --opn-text: #111; max-width: 1000px; margin: 24px auto; font-family: Arial, sans-serif; }
 .opn-sheet { display: grid; grid-template-columns: 26% 74%; grid-template-rows: 1fr auto; background: #fff; margin-bottom: 24px; box-shadow: 0 3px 12px #0002; color: var(--opn-text); }
 .opn-sheet * { box-sizing: border-box; }
@@ -36,56 +54,63 @@
 .opn-sheet-footer { grid-column: 1 / -1; background: var(--opn-footer); color: white; padding: 12px 18px; font-size: 11px; }
 .opn-sheet-footer p { margin: 0; }
 .opn-layout-warning { padding: 16px; background: #fff3cd; color: #342800; font: 16px/1.5 Arial, sans-serif; border: 2px solid #9c6b00; }
+
+/* Reading on a phone: one column, shared sidebar shown once after the back page. */
 @media screen and (max-width: 700px) {
-    .opn-issue { margin: 16px; }
-    .opn-sheet { display: flex; flex-direction: column; }
-    .opn-sidebar { padding: 20px; }
-    .opn-sheet--front .opn-sidebar { display: none; }
-    .opn-main { order: 1; }
-    .opn-sidebar { order: 2; }
-    .opn-sheet-footer { order: 3; }
-    .opn-sidebar .opn-motto { font-size: 24px; margin-bottom: 20px; }
-    .opn-sheet .wp-block-columns { flex-direction: column; }
-    .opn-sheet .wp-block-column { flex-basis: auto !important; }
-    .opn-main .opn-title { font-size: 34px; }
-    .opn-main .opn-story { font-size: 18px; }
-    .opn-main .opn-story img { max-height: none; }
+    body:not(.opn-print-mode) .opn-issue { margin: 16px; }
+    body:not(.opn-print-mode) .opn-sheet { display: flex; flex-direction: column; }
+    body:not(.opn-print-mode) .opn-sidebar { padding: 20px; order: 2; }
+    body:not(.opn-print-mode) .opn-sheet--front .opn-sidebar { display: none; }
+    body:not(.opn-print-mode) .opn-main { order: 1; }
+    body:not(.opn-print-mode) .opn-sheet-footer { order: 3; }
+    body:not(.opn-print-mode) .opn-sidebar .opn-motto { font-size: 24px; margin-bottom: 20px; }
+    body:not(.opn-print-mode) .opn-sheet .wp-block-columns { flex-direction: column; }
+    body:not(.opn-print-mode) .opn-sheet .wp-block-column { flex-basis: auto !important; }
+    body:not(.opn-print-mode) .opn-main .opn-title { font-size: 34px; }
+    body:not(.opn-print-mode) .opn-main .opn-story img { max-height: none; }
+    .opn-newsletter-toolbar { padding: 10px 16px; }
 }
+
+/* Two US Letter sheets: shared by the print preview and the printed page. */
+.opn-print-mode .opn-issue { width: 8in; max-width: none; margin: 24px auto; }
+.opn-print-mode .opn-sheet { width: 8in; height: 10.49in; grid-template-rows: minmax(0, 1fr) 0.3in; break-after: page; break-inside: avoid; }
+.opn-print-mode .opn-sheet:last-child { break-after: auto; }
+.opn-print-mode .opn-issue .opn-sheet p { margin: 0 0 0.06in; line-height: 1.32; font-size: inherit; text-indent: 0 !important; text-align: left; }
+.opn-print-mode .opn-issue .wp-block-group, .opn-print-mode .opn-issue .wp-block-columns, .opn-print-mode .opn-issue .wp-block-column { margin-block: 0 !important; }
+.opn-print-mode .opn-issue .opn-sheet h1, .opn-print-mode .opn-issue .opn-sheet h2, .opn-print-mode .opn-issue .opn-sheet h3 { font-family: Arial, sans-serif; font-weight: 700; margin: 0 0 0.07in; }
+.opn-print-mode .opn-sheet .wp-block-columns { gap: 0.14in; flex-direction: row; flex-wrap: nowrap !important; }
+.opn-print-mode .opn-sheet .wp-block-columns > .wp-block-column { flex-basis: 0 !important; flex-grow: 1; }
+.opn-print-mode .opn-sidebar { padding: 0.18in 0.16in; font-size: 10.8pt; }
+.opn-print-mode .opn-sheet--back .opn-sidebar { display: block; }
+.opn-print-mode .opn-sidebar h2 { font-size: 12pt; margin-top: 0.22in; }
+.opn-print-mode .opn-sidebar .opn-motto { font-size: 19pt; margin: 0.08in 0 0.28in; }
+.opn-print-mode .opn-sidebar .opn-contact-card { padding: 0.16in; margin: 0 -0.16in 0.16in; }
+.opn-print-mode .opn-sidebar .opn-qr-pending { font-size: 9pt; padding: 0.12in; margin: 0.2in 0; }
+.opn-print-mode .opn-sidebar .opn-logo { margin-top: 0.2in; }
+.opn-print-mode .opn-main .opn-hero img { height: 1.9in; object-fit: cover; }
+.opn-print-mode .opn-sheet--front .opn-main .opn-hero img { height: 1.5in; }
+.opn-print-mode .opn-main .opn-issue-label { font-size: 12pt; padding: 0.08in 0.14in; margin: 0; }
+.opn-print-mode .opn-main .opn-kicker { padding: 0.08in 0.14in 0; font-size: 13pt; margin-bottom: 0.02in; }
+.opn-print-mode .opn-main .opn-title { padding: 0 0.14in; font-size: 35pt; margin-bottom: 0.04in; }
+.opn-print-mode .opn-main .opn-story { padding: 0.08in 0.16in 0.12in; font-size: 11.4pt; }
+.opn-print-mode .opn-main .opn-story h2 { font-size: 17pt; }
+.opn-print-mode .opn-main .opn-story img { max-height: 1.65in; object-fit: cover; }
+.opn-print-mode .opn-sheet--front .opn-story .wp-block-column:first-child img { max-height: 1.15in; }
+.opn-print-mode .opn-main .opn-story .wp-block-image { margin-bottom: 0.08in; }
+.opn-print-mode .opn-issue .opn-main .opn-callout { padding: 0.13in 0.16in; font-size: 10.4pt; }
+.opn-print-mode .opn-main .opn-callout h2 { font-size: 14pt; margin-bottom: 0.06in; }
+.opn-print-mode .opn-main .opn-callout p, .opn-print-mode .opn-main .opn-callout ul { font-size: 10.4pt; line-height: 1.35; }
+.opn-print-mode .opn-main .opn-callout ul { padding-left: 0.16in; }
+.opn-print-mode .opn-sheet-footer { padding: 0.08in 0.14in; font-size: 7.5pt; }
+.opn-print-mode .opn-sheet[data-print-overflow="true"] { outline: 4px solid #b32d2e; outline-offset: 4px; }
+
 @page { size: letter portrait; margin: 0.25in; }
 @media print {
     html, body { margin: 0 !important; padding: 0 !important; background: white !important; }
     * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
     .opn-newsletter-toolbar, #wpadminbar { display: none !important; }
-    .opn-issue { width: 8in; max-width: none; margin: 0; }
-    .opn-sheet { width: 8in; height: 10.49in; margin: 0; box-shadow: none; grid-template-rows: minmax(0, 1fr) 0.3in; break-after: page; break-inside: avoid; }
-    .opn-sheet:last-child { break-after: auto; }
-    .opn-issue .opn-sheet p { margin: 0 0 0.06in; line-height: 1.32; font-size: inherit; text-indent: 0 !important; text-align: left; }
-    .opn-issue .wp-block-group, .opn-issue .wp-block-columns, .opn-issue .wp-block-column { margin-block: 0 !important; }
-    .opn-issue .opn-sheet h1, .opn-issue .opn-sheet h2, .opn-issue .opn-sheet h3 { font-family: Arial, sans-serif; font-weight: 700; margin: 0 0 0.07in; }
-    .opn-sheet .wp-block-columns { gap: 0.14in; flex-direction: row; flex-wrap: nowrap !important; }
-    .opn-sheet .wp-block-columns > .wp-block-column { flex-basis: 0 !important; flex-grow: 1; }
-    .opn-sidebar { padding: 0.18in 0.16in; font-size: 10.8pt; }
-    .opn-sheet--back .opn-sidebar { display: block; }
-    .opn-sidebar h2 { font-size: 12pt; margin-top: 0.22in; }
-    .opn-sidebar .opn-motto { font-size: 19pt; margin: 0.08in 0 0.28in; }
-    .opn-sidebar .opn-contact-card { padding: 0.16in; margin: 0 -0.16in 0.16in; }
-    .opn-sidebar .opn-qr-pending { font-size: 9pt; padding: 0.12in; margin: 0.2in 0; }
-    .opn-sidebar .opn-logo { margin-top: 0.2in; }
-    .opn-main .opn-hero img { height: 1.9in; object-fit: cover; }
-    .opn-sheet--front .opn-main .opn-hero img { height: 1.5in; }
-    .opn-main .opn-issue-label { font-size: 12pt; padding: 0.08in 0.14in; margin: 0; }
-    .opn-main .opn-kicker { padding: 0.08in 0.14in 0; font-size: 13pt; margin-bottom: 0.02in; }
-    .opn-main .opn-title { padding: 0 0.14in; font-size: 35pt; margin-bottom: 0.04in; }
-    .opn-main .opn-story { padding: 0.08in 0.16in 0.12in; font-size: 11.4pt; }
-    .opn-main .opn-story h2 { font-size: 17pt; }
-    .opn-main .opn-story img { max-height: 1.65in; object-fit: cover; }
-    .opn-sheet--front .opn-story .wp-block-column:first-child img { max-height: 1.15in; }
-    .opn-main .opn-story .wp-block-image { margin-bottom: 0.08in; }
-    .opn-issue .opn-main .opn-callout { padding: 0.13in 0.16in; font-size: 10.4pt; }
-    .opn-main .opn-callout h2 { font-size: 14pt; margin-bottom: 0.06in; }
-    .opn-main .opn-callout p, .opn-main .opn-callout ul { font-size: 10.4pt; line-height: 1.35; }
-    .opn-main .opn-callout ul { padding-left: 0.16in; }
-    .opn-sheet-footer { padding: 0.08in 0.14in; font-size: 7.5pt; }
+    .opn-print-mode .opn-issue { margin: 0; }
+    .opn-print-mode .opn-sheet { margin: 0; box-shadow: none; outline: none !important; }
     .pmb-print-page .pmb-post, .pmb-print-page .pmb-posts, .pmb-print-page .pmb-main { margin: 0 !important; padding: 0 !important; max-width: none !important; }
     .pmb-print-page .pmb-post-title, .pmb-print-page .pmb-post-meta, .pmb-print-page .pmb-print-page-header { display: none !important; }
     .pmb-pro-print-page header.entry-header, .pmb-pro-print-page .pmb-title { display: none !important; }

@@ -3,11 +3,11 @@
 /**
  * Plugin Name: Omni Platform Newsletter
  * Plugin URI: https://github.com/Ultimate-Multisite/omni-platform-newsletter
- * Description: Write one block newsletter for responsive web, email, and duplex print/PDF output.
- * Version: 0.1.3
+ * Description: Write one block newsletter and publish it to your website, email it to subscribers, and print it as a two-page letter.
+ * Version: 0.2.0
  * Requires at least: 6.9
  * Requires PHP: 8.2
- * Requires Plugins: newspack-newsletters, print-my-blog
+ * Requires Plugins: newspack-newsletters, newsletter
  * Author: Ultimate Multisite Community
  * License: GPL-2.0-or-later
  * Text Domain: omni-platform-newsletter
@@ -19,7 +19,7 @@ namespace OmniPlatform\Newsletter;
 
 defined('ABSPATH') || exit;
 
-const VERSION = '0.1.3';
+const VERSION = '0.2.0';
 const ISSUE_META_KEY = '_omni_platform_newsletter_layout';
 
 /** Return post types supported by the current authoring adapter. */
@@ -106,6 +106,12 @@ function filterWebContent(string $content): string
 
 add_filter('the_content', __NAMESPACE__ . '\\filterWebContent', 8);
 
+/** Whether the current request is the on-screen two-page print view. */
+function isPrintView(): bool
+{
+    return isset($_GET['opn_view']) && $_GET['opn_view'] === 'print';
+}
+
 add_action('wp_enqueue_scripts', function () {
     $printPost = get_post(absint($_GET['pmb_p'] ?? 0));
     if (!isIssue(get_post()) && !isIssue($printPost)) {
@@ -114,7 +120,29 @@ add_action('wp_enqueue_scripts', function () {
 
     wp_enqueue_style('omni-platform-newsletter', plugins_url('layout.css', __FILE__), [], VERSION);
     wp_enqueue_script('omni-platform-newsletter-overflow', plugins_url('overflow.js', __FILE__), [], VERSION, true);
+    wp_localize_script('omni-platform-newsletter-overflow', 'omniNewsletterPrint', [
+        'fits' => __('Fits on two pages. Ready to print.', 'omni-platform-newsletter'),
+        /* translators: %s: comma-separated page numbers */
+        'tooLong' => __('Too long to fit on page %s. Shorten the text or use smaller photos, then refresh this page.', 'omni-platform-newsletter'),
+        /* translators: %d: page number */
+        'sheetWarning' => __('Page %d is too long to fit. Nothing has been hidden: shorten the text or use smaller photos before printing.', 'omni-platform-newsletter'),
+    ]);
 }, 1100);
+
+add_filter('body_class', function (array $classes) {
+    if (isPrintView() && isIssue(get_post())) {
+        $classes[] = 'opn-print-mode';
+    }
+
+    return $classes;
+});
+
+/** The print view is for preparing paper copies; keep it out of search results. */
+add_action('wp_head', function () {
+    if (isPrintView() && isIssue(get_post())) {
+        echo '<meta name="robots" content="noindex">' . "\n";
+    }
+}, 1);
 
 /** Lead email with primary stories and include shared details only once. */
 function filterNewsletterContent(string $content, $post): string
@@ -158,8 +186,8 @@ function printUrl(\WP_Post $post): string
 }
 
 add_filter('post_row_actions', function ($actions, $post) {
-    if (isIssue($post) && shortcode_exists('pmb_print_page_url') && $post->post_status === 'publish') {
-        $actions['opn_print'] = '<a href="' . esc_url(printUrl($post)) . '">Duplex print preview</a>';
+    if (isIssue($post) && current_user_can('edit_post', $post->ID)) {
+        $actions['opn_print'] = '<a href="' . esc_url(printPreviewUrl($post)) . '" target="_blank" rel="noopener">' . esc_html__('Print / PDF', 'omni-platform-newsletter') . '</a>';
     }
 
     return $actions;
@@ -185,10 +213,17 @@ BLOCKS;
 add_action('init', function () {
     if (function_exists('register_block_pattern')) {
         register_block_pattern('omni-platform-newsletter/duplex-starter', [
-            'title' => 'Omni duplex newsletter',
-            'description' => 'Enter Sidebar and Footer once; Front and Back become two print sides.',
+            'title' => __('Two-page newsletter layout', 'omni-platform-newsletter'),
+            'description' => __('Enter the Sidebar and Footer once; Front and Back become the two printed pages.', 'omni-platform-newsletter'),
             'postTypes' => supportedPostTypes(),
             'content' => starterPatternContent(),
         ]);
     }
 });
+
+require_once __DIR__ . '/includes/capabilities.php';
+require_once __DIR__ . '/includes/delivery.php';
+require_once __DIR__ . '/includes/social.php';
+require_once __DIR__ . '/includes/rest.php';
+// Admin screens plus helpers (settings, print links) that the front end also uses.
+require_once __DIR__ . '/includes/admin.php';
