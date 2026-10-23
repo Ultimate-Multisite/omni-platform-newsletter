@@ -76,15 +76,31 @@ function renderIssue(\WP_Post $post): string
 
     $sidebar = render_block($sections['sidebar']);
     $footer = render_block($sections['footer']);
-    $html = '<div class="opn-issue">';
-    foreach (['front', 'back'] as $side) {
-        $html .= '<section class="opn-sheet opn-sheet--' . $side . '" aria-label="Newsletter ' . $side . '">'
+    $front = render_block($sections['front']);
+    $back = render_block($sections['back']);
+
+    // Print: two Letter sheets, each with the shared sidebar and footer.
+    $print = '<div class="opn-print">';
+    foreach (['front' => $front, 'back' => $back] as $side => $main) {
+        $print .= '<section class="opn-sheet opn-sheet--' . $side . '" aria-label="Newsletter ' . $side . '">'
             . '<aside class="opn-sidebar">' . $sidebar . '</aside>'
-            . '<div class="opn-main">' . render_block($sections[$side]) . '</div>'
+            . '<div class="opn-main">' . $main . '</div>'
             . '<footer class="opn-sheet-footer">' . $footer . '</footer></section>';
     }
+    $print .= '</div>';
 
-    return $html . '</div>';
+    if (isPrintView()) {
+        return '<div class="opn-issue">' . $print . '</div>';
+    }
+
+    // Website: one continuous page with the sidebar and footer once; the back
+    // page's content follows the front page's. Printing switches to the sheets.
+    $web = '<article class="opn-web">'
+        . '<aside class="opn-sidebar">' . $sidebar . '</aside>'
+        . '<div class="opn-main">' . $front . $back . '</div>'
+        . '<footer class="opn-sheet-footer">' . $footer . '</footer></article>';
+
+    return '<div class="opn-issue">' . $web . $print . '</div>';
 }
 
 /** Replace opted-in newsletter content before WordPress renders blocks and shortcodes. */
