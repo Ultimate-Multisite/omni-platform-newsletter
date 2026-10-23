@@ -149,6 +149,9 @@
     html, body { margin: 0 !important; padding: 0 !important; background: white !important; }
     * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
     .opn-newsletter-toolbar, .opn-web-actions, #wpadminbar { display: none !important; }
+    /* Without JavaScript (no beforeprint), still print the sheets rather than the web article. */
+    .opn-print { display: block !important; }
+    .opn-web, .opn-breadcrumb { display: none !important; }
     body.opn-newsletter-single :not(:has(.opn-issue)):not(.opn-issue):not(.opn-issue *) { display: none !important; }
     body.opn-newsletter-single :has(.opn-issue) { margin: 0 !important; padding: 0 !important; max-width: none !important; border: 0 !important; background: none !important; box-shadow: none !important; }
     .opn-print-mode .opn-issue { margin: 0; }

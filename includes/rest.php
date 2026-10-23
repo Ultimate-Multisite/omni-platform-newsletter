@@ -49,7 +49,7 @@ function issueSummary(\WP_Post $post): array
 /** Turn a delivery error into a REST error with a helpful status. */
 function restError(\WP_Error $error): \WP_Error
 {
-    $status = in_array($error->get_error_code(), ['opn_email_missing', 'opn_email_stale', 'opn_layout', 'opn_address', 'opn_no_audience', 'opn_already_sent', 'opn_in_progress'], true) ? 409 : 500;
+    $status = in_array($error->get_error_code(), ['opn_email_missing', 'opn_email_stale', 'opn_layout', 'opn_address', 'opn_no_audience', 'opn_already_sent', 'opn_in_progress', 'opn_unknown_list'], true) ? 409 : 500;
     return new \WP_Error($error->get_error_code(), $error->get_error_message(), ['status' => $status]);
 }
 

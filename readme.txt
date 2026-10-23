@@ -34,7 +34,10 @@ administrators.
 
 Capabilities: `opn_write_newsletters`, `opn_send_newsletters`,
 `opn_manage_subscribers`, `opn_manage_newsletter_settings` (all granted to site
-administrators) and `opn_manage_newsletter_engines` (network administrators).
+administrators) and `opn_manage_newsletter_engines`, which shows the engine
+plugins' own screens: site administrators on single-site installs, network
+administrators on multisite, or anyone granted it through the
+`omni_platform_newsletter_user_manages_engines` filter.
 
 Colors come from the active theme's palette (link color, a darker shade, its brightest
 strong color, text and background), so web, print and email match the website.

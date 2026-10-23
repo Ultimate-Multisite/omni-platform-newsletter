@@ -66,7 +66,7 @@ $pages = max(1, (int) ceil($found / $perPage));
             <h2><?php esc_html_e('Add many at once', 'omni-platform-newsletter'); ?></h2>
             <input type="hidden" name="action" value="opn_import_subscribers">
             <?php wp_nonce_field('opn_import_subscribers'); ?>
-            <p><label for="opn-addresses"><?php esc_html_e('Paste one person per line: an email address, optionally followed by a comma and their name. You can copy two columns straight from a spreadsheet.', 'omni-platform-newsletter'); ?></label></p>
+            <p><label for="opn-addresses"><?php esc_html_e('Paste one person per line: an email address, optionally followed by a comma and their name. You can copy two columns straight from a spreadsheet. Up to 5,000 people at a time.', 'omni-platform-newsletter'); ?></label></p>
             <textarea id="opn-addresses" name="addresses" rows="7" class="large-text code" placeholder="mary@example.org, Mary Smith&#10;john@example.org" required></textarea>
             <?php if ($lists) : ?>
                 <fieldset><legend><?php esc_html_e('Add everyone to these lists', 'omni-platform-newsletter'); ?></legend>

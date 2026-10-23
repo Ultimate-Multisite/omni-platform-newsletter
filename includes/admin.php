@@ -124,7 +124,9 @@ add_action('current_screen', function ($screen) {
         || ($screen->taxonomy ?? '') === 'newspack_nl_advertiser'
     );
 
-    if (($listScreen && !isset($_GET['opn_engine_list'])) || $engineScreen) {
+    // Only engine users may open Newspack's own list (linked from Settings → Advanced).
+    $engineList = isset($_GET['opn_engine_list']) && currentUserManagesEngines();
+    if (($listScreen && !$engineList) || $engineScreen) {
         wp_safe_redirect(pageUrl(PAGE_LIST));
         exit;
     }
@@ -502,8 +504,12 @@ add_action('admin_post_opn_import_subscribers', function () {
     $lines = preg_split('/\r\n|\r|\n/', (string) wp_unslash($_POST['addresses'] ?? ''));
     $added = 0;
     $skipped = 0;
-    foreach (array_slice(array_filter(array_map('trim', $lines)), 0, 5000) as $line) {
-        $parts = array_map('trim', str_getcsv($line));
+    $rows = array_values(array_filter(array_map('trim', $lines)));
+    $limit = (int) apply_filters('omni_platform_newsletter_import_limit', 5000);
+    // Rows beyond the limit are not imported; report them as skipped.
+    $skipped += max(0, count($rows) - $limit);
+    foreach (array_slice($rows, 0, $limit) as $line) {
+        $parts = array_map('trim', str_getcsv($line, ',', '"', ''));
         $email = sanitize_email($parts[0] ?? '');
         $name = sanitize_text_field($parts[1] ?? '');
         if (!is_email($email) && is_email(sanitize_email($parts[1] ?? ''))) {
@@ -549,7 +555,7 @@ add_action('admin_post_opn_export_subscribers', function () {
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename="subscribers-' . gmdate('Y-m-d') . '.csv"');
     $out = fopen('php://output', 'w');
-    fputcsv($out, ['email', 'name', 'status', 'joined']);
+    fputcsv($out, ['email', 'name', 'status', 'joined'], ',', '"', '');
     foreach ((array) $wpdb->get_results('select email, name, surname, status, created from ' . NEWSLETTER_USERS_TABLE . ' order by id') as $row) {
         // Neutralise spreadsheet formulas in exported text.
         $cells = array_map(fn($cell) => preg_match('/^[=+\-@]/', (string) $cell) ? "'" . $cell : (string) $cell, [
@@ -558,7 +564,7 @@ add_action('admin_post_opn_export_subscribers', function () {
             subscriberStatusLabel((string) $row->status),
             $row->created,
         ]);
-        fputcsv($out, $cells);
+        fputcsv($out, $cells, ',', '"', '');
     }
     fclose($out);
     exit;

@@ -237,7 +237,9 @@ function emailHtml(\WP_Post $post): string|\WP_Error
         ))
         . '<br>' . implode(' &middot; ', $links) . '</td></tr></table>';
 
-    $html = stripos($html, '</body>') !== false ? preg_replace('~</body>~i', $footer . '</body>', $html, 1) : $html . $footer;
+    // Insert by offset: a replacement string would treat "$1" or "\\" in the site name as back-references.
+    $at = strripos($html, '</body>');
+    $html = $at !== false ? substr_replace($html, $footer, $at, 0) : $html . $footer;
 
     return (string) apply_filters('omni_platform_newsletter_email_html', $html, $post);
 }
@@ -356,11 +358,33 @@ function deliveryStatus(\WP_Post $post): array
 /** Queue the newsletter for every confirmed subscriber in the chosen lists. */
 function sendCampaign(\WP_Post $post, array $lists, bool $again = false): array|\WP_Error
 {
-    global $wpdb;
-
     if (!deliveryAvailable()) {
         return new \WP_Error('opn_delivery', __('Email sending is not set up on this site.', 'omni-platform-newsletter'));
     }
+
+    // One send at a time per newsletter (double clicks, two staff members).
+    $lock = 'omni_platform_newsletter_lock_' . $post->ID;
+    if (!add_option($lock, time(), '', false)) {
+        if ((int) get_option($lock) > time() - 120) {
+            return new \WP_Error('opn_in_progress', __('This newsletter is already being sent.', 'omni-platform-newsletter'));
+        }
+        delete_option($lock); // Stale lock from an interrupted request.
+        if (!add_option($lock, time(), '', false)) {
+            return new \WP_Error('opn_in_progress', __('This newsletter is already being sent.', 'omni-platform-newsletter'));
+        }
+    }
+
+    try {
+        return queueCampaign($post, $lists, $again);
+    } finally {
+        delete_option($lock);
+    }
+}
+
+/** Queue a campaign; the caller holds the per-newsletter send lock. */
+function queueCampaign(\WP_Post $post, array $lists, bool $again): array|\WP_Error
+{
+    global $wpdb;
 
     $status = deliveryStatus($post);
     if (in_array($status['state'], ['sending', 'queued', 'paused'], true)) {
@@ -378,7 +402,12 @@ function sendCampaign(\WP_Post $post, array $lists, bool $again = false): array|
         return new \WP_Error('opn_sender', __('Email sending is not set up on this site yet. Please contact support.', 'omni-platform-newsletter'));
     }
 
-    $lists = array_values(array_intersect(array_map('intval', $lists), array_keys(deliveryLists())));
+    $requested = array_values(array_unique(array_map('intval', $lists)));
+    $lists = array_values(array_intersect($requested, array_keys(deliveryLists())));
+    // Never widen a list send to everyone because the chosen lists no longer exist.
+    if ($requested !== [] && $lists === []) {
+        return new \WP_Error('opn_unknown_list', __('The selected list no longer exists. Reload the page and choose who should receive it.', 'omni-platform-newsletter'));
+    }
     $record = deliveryRecord($post, $html, $lists);
     if ($record['total'] < 1) {
         return new \WP_Error('opn_no_audience', __('There are no confirmed subscribers to send to yet.', 'omni-platform-newsletter'));
