@@ -321,7 +321,7 @@
         const unsubscribe = wp.data.subscribe(() => {
             if (select('core/editor').getCurrentPostId() && select('core/block-editor').getBlocks().length) {
                 unsubscribe();
-                setTimeout(() => dispatch('core/notices').createNotice('success', __('This is a copy. Update the front and back pages, then publish or send it.', td), { isDismissible: true, id: 'opn-copied' }), 500);
+                setTimeout(() => dispatch('core/notices').createNotice('success', __('This is a copy. Update the front and back pages, then publish or send it.', td), { isDismissible: true, id: 'opn-copied' }), 2000);
             }
         });
     }

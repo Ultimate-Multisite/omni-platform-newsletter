@@ -166,10 +166,18 @@ function latestIssue(int $exclude = 0): ?\WP_Post
 /** New issues reuse the latest Sidebar and Footer, with fresh Front and Back placeholders. */
 function newIssueContent(): string
 {
-    $starter = parse_blocks(starterPatternContent());
+    /**
+     * Starter content for an organization's first newsletter (before any issue exists).
+     * Must keep the four opn-source-* sections; defaults to the neutral pattern.
+     */
+    $starterContent = (string) apply_filters('omni_platform_newsletter_starter_content', starterPatternContent());
+    if (count(array_filter(parse_blocks($starterContent), fn($b) => $b['blockName'] !== null)) !== 4) {
+        $starterContent = starterPatternContent();
+    }
+    $starter = parse_blocks($starterContent);
     $previous = latestIssue();
     if (!$previous) {
-        return starterPatternContent();
+        return $starterContent;
     }
 
     $shared = sections($previous);
