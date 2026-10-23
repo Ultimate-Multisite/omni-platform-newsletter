@@ -157,5 +157,21 @@ function paletteCss(): string
         . '--opn-dark:' . $p['dark'] . ';--opn-on-dark:' . $p['on_dark'] . ';'
         . '--opn-accent:' . $p['accent'] . ';--opn-on-accent:' . $p['on_accent'] . ';'
         . '--opn-heading:' . $p['primary'] . ';--opn-text:' . $p['text'] . ';--opn-paper:' . $p['background'] . ';'
-        . '--opn-footer:' . $p['text'] . ';--opn-on-footer:' . $p['on_text'] . ';}';
+        . '--opn-footer:' . $p['text'] . ';--opn-on-footer:' . $p['on_text'] . ';'
+        . '--opn-heading-font:' . headingFont() . ';}';
+}
+
+/** The theme's heading font as a CSS value (website view only; print and email use Arial). */
+function headingFont(): string
+{
+    $font = function_exists('wp_get_global_styles') ? wp_get_global_styles(['elements', 'heading', 'typography', 'fontFamily']) : '';
+    if (!is_string($font) || $font === '') {
+        return 'inherit';
+    }
+    if (preg_match('/^var:preset\|font-family\|([a-z0-9-]+)$/i', $font, $m)) {
+        $font = 'var(--wp--preset--font-family--' . $m[1] . ')';
+    }
+
+    // Allow only characters found in font stacks and CSS variables.
+    return preg_match('/^[\w\s,\'"().-]+$/', $font) ? $font : 'inherit';
 }

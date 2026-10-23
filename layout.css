@@ -30,7 +30,8 @@
 .opn-print-mode .opn-web { display: none; }
 :is(.opn-sheet, .opn-web) * { box-sizing: border-box; }
 :is(.opn-sheet, .opn-web) p { margin: 0 0 12px; line-height: 1.4; }
-:is(.opn-sheet, .opn-web) :is(h1, h2, h3) { line-height: 1.15; margin: 0 0 12px; font-family: Arial, Helvetica, sans-serif; font-weight: 700; }
+:is(.opn-sheet, .opn-web) :is(h1, h2, h3) { line-height: 1.15; margin: 0 0 12px; font-weight: 700; }
+.opn-sheet :is(h1, h2, h3) { font-family: Arial, Helvetica, sans-serif; }
 :is(.opn-sheet, .opn-web) figure { margin: 0; }
 :is(.opn-sheet, .opn-web) img { display: block; width: 100%; max-width: 100%; height: auto; }
 :is(.opn-sheet, .opn-web) .wp-block-columns { display: flex; gap: 18px; margin: 0; }
@@ -60,10 +61,34 @@
 .opn-sheet-footer p { margin: 0; }
 .opn-layout-warning { padding: 16px; background: #fff3cd; color: #342800; font: 16px/1.5 Arial, sans-serif; border: 2px solid #9c6b00; }
 
-/* Website view inside the theme's post template. */
-.opn-web { grid-template-rows: auto; box-shadow: none; border: 1px solid #0001; }
-.opn-web-actions { display: flex; justify-content: flex-end; gap: 20px; margin: 0 0 12px; font: 15px/1.5 Arial, sans-serif; }
-.opn-web-actions a { color: var(--opn-heading); }
+/* Website view inside the theme's post template: the issue reads like an article,
+   using the theme's fonts, with the shared sidebar as a sticky card beside it. */
+.opn-newsletter-single .opn-issue { max-width: var(--wp--style--global--wide-size, 1180px); margin: 0 auto; font-family: inherit; }
+.opn-web { grid-template-columns: minmax(0, 1fr) minmax(240px, 300px); grid-template-rows: auto; gap: 32px; align-items: start; margin: 0; background: none; box-shadow: none; color: var(--opn-text); }
+.opn-web .opn-main { background: var(--opn-paper); border-radius: 16px; overflow: hidden; box-shadow: 0 1px 2px #0000000f, 0 14px 36px #00000014; }
+.opn-web :is(h1, h2, h3) { font-family: var(--opn-heading-font, inherit); }
+.opn-web .opn-issue-label { padding: 12px 36px; font-size: 15px; letter-spacing: .06em; text-transform: uppercase; }
+.opn-web .opn-kicker { padding: 28px 36px 0; font-size: 16px; letter-spacing: .04em; text-transform: uppercase; }
+.opn-web .opn-title { padding: 0 36px 8px; font-size: clamp(34px, 4.2vw, 54px); }
+.opn-web .opn-story { padding: 24px 36px 28px; font-size: 18px; line-height: 1.7; }
+.opn-web .opn-story + .opn-story { border-top: 1px solid #0000000f; }
+.opn-web .opn-story h2 { font-size: clamp(22px, 2.4vw, 28px); margin-bottom: 14px; }
+.opn-web .opn-story img { max-height: 420px; border-radius: 10px; }
+.opn-web .opn-callout { padding: 28px 36px; }
+.opn-web .opn-callout h2 { font-size: clamp(20px, 2.2vw, 26px); }
+.opn-web .opn-callout :is(p, ul) { font-size: 17px; }
+.opn-web .opn-sidebar { position: sticky; top: calc(var(--wp-admin--admin-bar--height, 0px) + 24px); padding: 0; background: none; }
+.opn-web .opn-sidebar__inner { padding: 28px 24px; border-radius: 16px; background: var(--opn-sidebar); color: var(--opn-on-sidebar); font-size: 15px; line-height: 1.6; box-shadow: 0 14px 36px #00000014; }
+.opn-web .opn-sidebar .opn-motto { font-size: 22px; margin: 0 0 24px; }
+.opn-web .opn-sidebar .opn-contact-card { margin: 0 -24px 22px; padding: 20px 24px; }
+.opn-web .opn-sidebar h2 { font-size: 17px; margin-top: 22px; }
+.opn-breadcrumb ol { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 0 0 24px; padding: 0; list-style: none; font-size: 14px; line-height: 1.4; color: #00000099; }
+.opn-breadcrumb li { margin: 0; }
+.opn-breadcrumb li + li::before { content: "›"; margin-right: 8px; color: #00000066; }
+.opn-breadcrumb a { color: var(--opn-heading); text-decoration: none; }
+.opn-breadcrumb a:hover, .opn-breadcrumb a:focus-visible { text-decoration: underline; }
+.opn-breadcrumb [aria-current] { color: inherit; }
+.opn-print-mode .opn-breadcrumb { display: none; }
 
 /* Reading on a phone: one column, shared sidebar shown once after the back page. */
 @media screen and (max-width: 700px) {
@@ -79,6 +104,10 @@
     body:not(.opn-print-mode) .opn-main .opn-title { font-size: 34px; }
     body:not(.opn-print-mode) .opn-main .opn-story img { max-height: none; }
     .opn-newsletter-toolbar { padding: 10px 16px; }
+    body:not(.opn-print-mode) .opn-web { gap: 20px; }
+    body.opn-newsletter-single:not(.opn-print-mode) .opn-issue { margin: 0; }
+    body:not(.opn-print-mode) .opn-web .opn-sidebar { position: static; padding: 0; }
+    body:not(.opn-print-mode) .opn-web :is(.opn-issue-label, .opn-kicker, .opn-title, .opn-story, .opn-callout) { padding-left: 20px; padding-right: 20px; }
 }
 
 /* Two US Letter sheets: shared by the print preview and the printed page. */

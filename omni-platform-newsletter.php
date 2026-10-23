@@ -96,19 +96,62 @@ function renderIssue(\WP_Post $post): string
     // Website: shown inside the site's own post template (site header and footer),
     // as one continuous page with the sidebar once and no newsletter footer.
     // Printing switches to the sheets.
-    $links = '<nav class="opn-web-actions" aria-label="' . esc_attr__('Newsletter', 'omni-platform-newsletter') . '">';
-    $archive = get_post_type_archive_link($post->post_type);
-    if ($archive && get_post_meta($post->ID, 'is_public', true)) {
-        $links .= '<a href="' . esc_url($archive) . '">' . esc_html__('All newsletters', 'omni-platform-newsletter') . '</a>';
-    }
-    $links .= '<a href="' . esc_url(add_query_arg('opn_view', 'print', get_permalink($post))) . '">' . esc_html__('Print / PDF', 'omni-platform-newsletter') . '</a></nav>';
-
     $web = '<article class="opn-web">'
-        . '<aside class="opn-sidebar">' . $sidebar . '</aside>'
-        . '<div class="opn-main">' . $front . $back . '</div></article>';
+        . '<div class="opn-main">' . $front . $back . '</div>'
+        . '<aside class="opn-sidebar"><div class="opn-sidebar__inner">' . $sidebar . '</div></aside></article>';
 
-    return '<div class="opn-issue alignwide">' . $links . $web . $print . '</div>';
+    return '<div class="opn-issue alignwide">' . breadcrumb($post) . $web . $print . '</div>';
 }
+
+/** Home › Newsletters › This issue, with schema.org markup. */
+function breadcrumb(\WP_Post $post): string
+{
+    $items = [[__('Home', 'omni-platform-newsletter'), home_url('/')]];
+    $archive = get_post_type_archive_link($post->post_type);
+    if ($archive) {
+        $type = get_post_type_object($post->post_type);
+        $items[] = [$type ? $type->labels->name : __('Newsletters', 'omni-platform-newsletter'), $archive];
+    }
+    $items[] = [get_the_title($post), ''];
+
+    $html = '<nav class="opn-breadcrumb" aria-label="' . esc_attr__('Breadcrumb', 'omni-platform-newsletter') . '">'
+        . '<ol itemscope itemtype="https://schema.org/BreadcrumbList">';
+    foreach ($items as $i => [$label, $url]) {
+        $html .= '<li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">'
+            . ($url !== ''
+                ? '<a itemprop="item" href="' . esc_url($url) . '"><span itemprop="name">' . esc_html($label) . '</span></a>'
+                : '<span itemprop="name" aria-current="page">' . esc_html($label) . '</span>')
+            . '<meta itemprop="position" content="' . ($i + 1) . '"></li>';
+    }
+
+    return $html . '</ol></nav>';
+}
+
+/**
+ * Block themes: a single-newsletter template with the site's header and footer
+ * but no post-title banner (each issue has its own masthead). Themes can
+ * override it with their own single-newspack_nl_cpt template.
+ */
+add_action('init', function () {
+    if (!function_exists('register_block_template') || !wp_is_block_theme()) {
+        return;
+    }
+
+    $content = '<!-- wp:template-part {"slug":"header","tagName":"header"} /-->'
+        . '<!-- wp:group {"tagName":"main","align":"full","className":"opn-newsletter-main","style":{"spacing":{"padding":{"top":"2rem","bottom":"4rem"}}},"layout":{"type":"constrained"}} -->'
+        . '<main class="wp-block-group alignfull opn-newsletter-main" style="padding-top:2rem;padding-bottom:4rem">'
+        . '<!-- wp:post-content {"align":"wide","layout":{"type":"constrained"}} /--></main><!-- /wp:group -->'
+        . '<!-- wp:template-part {"slug":"footer","tagName":"footer"} /-->';
+
+    foreach (supportedPostTypes() as $type) {
+        register_block_template('omni-platform-newsletter//single-' . $type, [
+            'title' => __('Single newsletter', 'omni-platform-newsletter'),
+            'description' => __('A newsletter issue with the site header and footer.', 'omni-platform-newsletter'),
+            'post_types' => [$type],
+            'content' => $content,
+        ]);
+    }
+}, 20);
 
 /** Replace opted-in newsletter content before WordPress renders blocks and shortcodes. */
 function filterWebContent(string $content): string

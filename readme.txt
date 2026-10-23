@@ -53,7 +53,7 @@ Filters: `omni_platform_newsletter_palette`, `omni_platform_newsletter_starter_c
 == Changelog ==
 
 = 0.2.0 =
-* Website view uses the theme's post template (site header and footer), one continuous page, sidebar once, no newsletter footer.
+* Website view: site header and footer, breadcrumb (Home › Newsletters › issue), no duplicate post title, one continuous article with the sidebar as a sticky card and no newsletter footer, theme heading font.
 * Web, print and email colors come from the theme palette, with readable text chosen by contrast.
 * One Newsletters menu: list with website and email status, Write a newsletter, Subscribers, Settings.
 * Send tests and campaigns through The Newsletter Plugin, with duplicate-send protection and delivery status.
