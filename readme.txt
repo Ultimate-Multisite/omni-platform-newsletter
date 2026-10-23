@@ -36,7 +36,10 @@ Capabilities: `opn_write_newsletters`, `opn_send_newsletters`,
 `opn_manage_subscribers`, `opn_manage_newsletter_settings` (all granted to site
 administrators) and `opn_manage_newsletter_engines` (network administrators).
 
-Filters: `omni_platform_newsletter_starter_content`,
+Colors come from the active theme's palette (link color, a darker shade, its brightest
+strong color, text and background), so web, print and email match the website.
+
+Filters: `omni_platform_newsletter_palette`, `omni_platform_newsletter_starter_content`,
 `omni_platform_newsletter_email_colors`, `omni_platform_newsletter_email_html`,
 `omni_platform_newsletter_post_types`,
 `omni_platform_newsletter_user_manages_engines`.
@@ -50,6 +53,8 @@ Filters: `omni_platform_newsletter_starter_content`,
 == Changelog ==
 
 = 0.2.0 =
+* Website view uses the theme's post template (site header and footer), one continuous page, sidebar once, no newsletter footer.
+* Web, print and email colors come from the theme palette, with readable text chosen by contrast.
 * One Newsletters menu: list with website and email status, Write a newsletter, Subscribers, Settings.
 * Send tests and campaigns through The Newsletter Plugin, with duplicate-send protection and delivery status.
 * Fall back to WordPress's From address when the Newsletter plugin has no sender (cloned sites previously failed silently).

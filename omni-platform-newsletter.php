@@ -93,14 +93,21 @@ function renderIssue(\WP_Post $post): string
         return '<div class="opn-issue">' . $print . '</div>';
     }
 
-    // Website: one continuous page with the sidebar and footer once; the back
-    // page's content follows the front page's. Printing switches to the sheets.
+    // Website: shown inside the site's own post template (site header and footer),
+    // as one continuous page with the sidebar once and no newsletter footer.
+    // Printing switches to the sheets.
+    $links = '<nav class="opn-web-actions" aria-label="' . esc_attr__('Newsletter', 'omni-platform-newsletter') . '">';
+    $archive = get_post_type_archive_link($post->post_type);
+    if ($archive && get_post_meta($post->ID, 'is_public', true)) {
+        $links .= '<a href="' . esc_url($archive) . '">' . esc_html__('All newsletters', 'omni-platform-newsletter') . '</a>';
+    }
+    $links .= '<a href="' . esc_url(add_query_arg('opn_view', 'print', get_permalink($post))) . '">' . esc_html__('Print / PDF', 'omni-platform-newsletter') . '</a></nav>';
+
     $web = '<article class="opn-web">'
         . '<aside class="opn-sidebar">' . $sidebar . '</aside>'
-        . '<div class="opn-main">' . $front . $back . '</div>'
-        . '<footer class="opn-sheet-footer">' . $footer . '</footer></article>';
+        . '<div class="opn-main">' . $front . $back . '</div></article>';
 
-    return '<div class="opn-issue">' . $web . $print . '</div>';
+    return '<div class="opn-issue alignwide">' . $links . $web . $print . '</div>';
 }
 
 /** Replace opted-in newsletter content before WordPress renders blocks and shortcodes. */
@@ -135,6 +142,7 @@ add_action('wp_enqueue_scripts', function () {
     }
 
     wp_enqueue_style('omni-platform-newsletter', plugins_url('layout.css', __FILE__), [], VERSION);
+    wp_add_inline_style('omni-platform-newsletter', paletteCss());
     wp_enqueue_script('omni-platform-newsletter-overflow', plugins_url('overflow.js', __FILE__), [], VERSION, true);
     wp_localize_script('omni-platform-newsletter-overflow', 'omniNewsletterPrint', [
         'fits' => __('Fits on two pages. Ready to print.', 'omni-platform-newsletter'),
@@ -148,6 +156,9 @@ add_action('wp_enqueue_scripts', function () {
 add_filter('body_class', function (array $classes) {
     if (isPrintView() && isIssue(get_post())) {
         $classes[] = 'opn-print-mode';
+    }
+    if (is_singular(supportedPostTypes()) && isIssue(get_post())) {
+        $classes[] = 'opn-newsletter-single';
     }
 
     return $classes;
@@ -183,13 +194,18 @@ function filterNewsletterContent(string $content, $post): string
 /** @return array<string, array{background: string, text: string}> Email colors per region (print uses layout.css). */
 function emailColors(): array
 {
+    $p = palette();
+    // Accent headings only where they stay readable on the colored panel.
+    $onDark = contrast($p['accent'], $p['dark']) >= 3 ? $p['accent'] : $p['on_dark'];
+    $onPrimary = contrast($p['accent'], $p['primary']) >= 3 ? $p['accent'] : $p['on_primary'];
+
     return (array) apply_filters('omni_platform_newsletter_email_colors', [
-        'front' => ['background' => '#ffffff', 'text' => '#111111', 'heading' => '#323650'],
-        'back' => ['background' => '#ffffff', 'text' => '#111111', 'heading' => '#323650'],
-        'callout' => ['background' => '#323650', 'text' => '#ffffff', 'heading' => '#ffda36'],
-        'sidebar' => ['background' => '#565e70', 'text' => '#ffffff', 'heading' => '#ffda36'],
-        'footer' => ['background' => '#101010', 'text' => '#ffffff', 'heading' => '#ffffff'],
-        'label' => ['background' => '#ffda36', 'text' => '#323650', 'heading' => '#323650'],
+        'front' => ['background' => $p['background'], 'text' => $p['text'], 'heading' => $p['primary']],
+        'back' => ['background' => $p['background'], 'text' => $p['text'], 'heading' => $p['primary']],
+        'callout' => ['background' => $p['dark'], 'text' => $p['on_dark'], 'heading' => $onDark],
+        'sidebar' => ['background' => $p['primary'], 'text' => $p['on_primary'], 'heading' => $onPrimary],
+        'footer' => ['background' => $p['text'], 'text' => $p['on_text'], 'heading' => $p['on_text']],
+        'label' => ['background' => $p['accent'], 'text' => $p['on_accent'], 'heading' => $p['on_accent']],
     ]);
 }
 
@@ -286,7 +302,8 @@ function emailBlocks(array $sections): array
 add_filter('newspack_newsletters_newsletter_content', __NAMESPACE__ . '\\filterNewsletterContent', 20, 2);
 
 add_filter('template_include', function ($template) {
-    if (is_singular(supportedPostTypes()) && isIssue(get_post()) && !isset($_GET['print-my-blog'])) {
+    // The website view uses the theme's own post template; only the print view is standalone.
+    if (isPrintView() && is_singular(supportedPostTypes()) && isIssue(get_post()) && !isset($_GET['print-my-blog'])) {
         return __DIR__ . '/web-template.php';
     }
 
@@ -339,6 +356,7 @@ add_action('init', function () {
     }
 });
 
+require_once __DIR__ . '/includes/palette.php';
 require_once __DIR__ . '/includes/capabilities.php';
 require_once __DIR__ . '/includes/delivery.php';
 require_once __DIR__ . '/includes/social.php';
