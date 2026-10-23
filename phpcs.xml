@@ -3,6 +3,8 @@
   <description>PSR-12 checks for the plugin's namespaced PHP.</description>
   <file>omni-platform-newsletter.php</file>
   <file>web-template.php</file>
+  <file>includes</file>
+  <file>views</file>
   <file>tests</file>
   <exclude-pattern>vendor/*</exclude-pattern>
   <rule ref="PSR12"/>

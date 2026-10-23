@@ -1,91 +1,161 @@
+/*
+ * Newsletter web, print-preview, and print layout.
+ * `.opn-print-mode` (the ?opn_view=print page, and any page while printing)
+ * lays the issue out as two US Letter sheets. overflow.js adds the class
+ * before the browser prints, so on-screen preview and paper share one set of rules.
+ */
 .opn-newsletter-view { margin: 0; background: #e8e9ed; }
-.opn-newsletter-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 16px 24px; background: #fff; font: 14px/1.5 Arial, sans-serif; }
-.opn-newsletter-toolbar a { color: #313650; padding: 10px; text-decoration: underline; }
-.opn-newsletter-toolbar button { padding: 10px 16px; min-height: 44px; border: 1px solid #313650; border-radius: 4px; background: white; color: #313650; cursor: pointer; }
+.opn-newsletter-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 12px 24px; background: #fff; font: 15px/1.5 Arial, sans-serif; border-bottom: 1px solid #d7d9e0; }
+.opn-newsletter-toolbar a { color: #313650; padding: 8px 4px; text-decoration: underline; }
+.opn-newsletter-toolbar .opn-site-link { font-weight: 700; text-decoration: none; }
+.opn-toolbar-spacer { flex: 1; }
+.opn-newsletter-toolbar button { padding: 10px 16px; min-height: 44px; border: 1px solid #313650; border-radius: 4px; background: white; color: #313650; cursor: pointer; font: inherit; }
+.opn-newsletter-toolbar .opn-button-primary { background: #313650; color: #fff; font-weight: 700; }
 .opn-newsletter-toolbar :focus-visible { outline: 3px solid #313650; outline-offset: 3px; }
-.opn-issue { --opn-sidebar: #565e70; --opn-dark: #323650; --opn-accent: #ffda36; --opn-footer: #101010; --opn-text: #111; max-width: 1000px; margin: 24px auto; font-family: Arial, sans-serif; }
-.opn-sheet { display: grid; grid-template-columns: 26% 74%; grid-template-rows: 1fr auto; background: #fff; margin-bottom: 24px; box-shadow: 0 3px 12px #0002; color: var(--opn-text); }
-.opn-sheet * { box-sizing: border-box; }
-.opn-sheet p { margin: 0 0 12px; line-height: 1.4; }
-.opn-sheet h1, .opn-sheet h2, .opn-sheet h3 { line-height: 1.15; margin: 0 0 12px; }
-.opn-sheet figure { margin: 0; }
-.opn-sheet img { display: block; width: 100%; max-width: 100%; height: auto; }
-.opn-sheet .wp-block-columns { display: flex; gap: 18px; margin: 0; }
-.opn-sheet .wp-block-column { flex: 1; min-width: 0; }
-.opn-sidebar { background: var(--opn-sidebar); color: white; padding: 24px 20px; font-size: 16px; }
+.opn-print-toolbar { position: sticky; top: 0; z-index: 10; display: block; }
+.opn-print-toolbar__main { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.opn-fit-status { padding: 4px 12px; border-radius: 999px; font-weight: 700; }
+.opn-fit-status[data-state="fits"] { background: #e7f5ea; color: #1a5e2a; }
+.opn-fit-status[data-state="overflow"] { background: #fcecec; color: #8a1f1f; }
+.opn-print-help { margin-top: 6px; font-size: 14px; }
+.opn-print-help summary { cursor: pointer; color: #313650; text-decoration: underline; }
+.opn-print-help ul { margin: 6px 0 0; padding-left: 20px; }
+
+/* Fallback palette; the plugin overrides these with colors derived from the site's theme. */
+.opn-issue { --opn-sidebar: #565e70; --opn-on-sidebar: #fff; --opn-dark: #323650; --opn-on-dark: #fff; --opn-accent: #ffda36; --opn-on-accent: #323650; --opn-heading: #323650; --opn-footer: #101010; --opn-on-footer: #fff; --opn-text: #111; --opn-paper: #fff; max-width: 1000px; margin: 24px auto; font-family: Arial, sans-serif; }
+.opn-sheet, .opn-web { display: grid; grid-template-columns: 26% 74%; grid-template-rows: 1fr auto; background: var(--opn-paper); margin-bottom: 24px; box-shadow: 0 3px 12px #0002; color: var(--opn-text); }
+/* The website reads as one continuous page; the two print sheets appear only when printing. */
+.opn-print { display: none; }
+.opn-print-mode .opn-print { display: block; }
+.opn-print-mode .opn-web { display: none; }
+:is(.opn-sheet, .opn-web) * { box-sizing: border-box; }
+:is(.opn-sheet, .opn-web) p { margin: 0 0 12px; line-height: 1.4; }
+:is(.opn-sheet, .opn-web) :is(h1, h2, h3) { line-height: 1.15; margin: 0 0 12px; font-weight: 700; }
+.opn-sheet :is(h1, h2, h3) { font-family: Arial, Helvetica, sans-serif; }
+:is(.opn-sheet, .opn-web) figure { margin: 0; }
+:is(.opn-sheet, .opn-web) img { display: block; width: 100%; max-width: 100%; height: auto; }
+:is(.opn-sheet, .opn-web) .wp-block-columns { display: flex; gap: 18px; margin: 0; }
+:is(.opn-sheet, .opn-web) .wp-block-column { flex: 1; min-width: 0; }
+.opn-sidebar { background: var(--opn-sidebar); color: var(--opn-on-sidebar); padding: 24px 20px; font-size: 16px; }
 .opn-sidebar h2 { color: var(--opn-accent); font-size: 19px; margin-top: 28px; }
-.opn-sidebar a { color: white; overflow-wrap: anywhere; }
+.opn-sidebar a { color: inherit; overflow-wrap: anywhere; }
 .opn-sidebar .opn-motto { text-align: center; font-size: 27px; line-height: 1.25; margin: 6px 0 36px; }
-.opn-sidebar .opn-contact-card { background: var(--opn-dark); margin: 0 -20px 22px; padding: 20px; }
+.opn-sidebar .opn-contact-card { background: var(--opn-dark); color: var(--opn-on-dark); margin: 0 -20px 22px; padding: 20px; }
 .opn-sidebar .opn-contact-card h2 { margin-top: 0; }
 .opn-sidebar .opn-logo { margin-top: 22px; }
 .opn-sidebar .opn-qr-pending { border: 1px dashed var(--opn-accent); padding: 14px; margin: 24px 0; font-size: 14px; }
 .opn-main { min-width: 0; }
 .opn-main .opn-hero img { height: 230px; object-fit: cover; }
-.opn-main .opn-issue-label { background: var(--opn-accent); color: var(--opn-dark); padding: 10px 18px; text-align: right; font-size: 18px; font-weight: 700; }
-.opn-main .opn-kicker { padding: 14px 18px 0; color: var(--opn-dark); font-size: 20px; font-weight: 700; }
-.opn-main .opn-title { padding: 0 18px; font-size: clamp(28px, 4.5vw, 56px); color: var(--opn-dark); }
+.opn-main .opn-issue-label { background: var(--opn-accent); color: var(--opn-on-accent); padding: 10px 18px; text-align: right; font-size: 18px; font-weight: 700; }
+.opn-main .opn-kicker { padding: 14px 18px 0; color: var(--opn-heading); font-size: 20px; font-weight: 700; }
+.opn-main .opn-title { padding: 0 18px; font-size: clamp(28px, 4.5vw, 56px); color: var(--opn-heading); }
 .opn-main .opn-story { padding: 14px 18px 18px; font-size: 18px; }
-.opn-main .opn-story h2 { font-size: 24px; color: var(--opn-dark); }
+.opn-main .opn-story h2 { font-size: 24px; color: var(--opn-heading); }
 .opn-main .opn-story .wp-block-image { margin-bottom: 12px; }
 .opn-main .opn-story img { max-height: 210px; object-fit: cover; }
-.opn-main .opn-callout { padding: 18px; background: var(--opn-dark); color: white; }
+.opn-main .opn-callout { padding: 18px; background: var(--opn-dark); color: var(--opn-on-dark); }
 .opn-main .opn-callout h2 { color: var(--opn-accent); font-size: 22px; }
 .opn-main .opn-callout p { margin: 0 0 6px; font-size: 16px; }
 .opn-main .opn-callout ul { padding-left: 20px; margin: 0; font-size: 16px; line-height: 1.45; }
-.opn-sheet-footer { grid-column: 1 / -1; background: var(--opn-footer); color: white; padding: 12px 18px; font-size: 11px; }
+.opn-sheet-footer { grid-column: 1 / -1; background: var(--opn-footer); color: var(--opn-on-footer); padding: 12px 18px; font-size: 11px; }
 .opn-sheet-footer p { margin: 0; }
 .opn-layout-warning { padding: 16px; background: #fff3cd; color: #342800; font: 16px/1.5 Arial, sans-serif; border: 2px solid #9c6b00; }
+
+/* Website view inside the theme's post template: the issue reads like an article,
+   using the theme's fonts, with the shared sidebar as a sticky card beside it. */
+.opn-newsletter-single .opn-issue { max-width: var(--wp--style--global--wide-size, 1180px); margin: 0 auto; font-family: inherit; }
+.opn-web { grid-template-columns: minmax(0, 1fr) minmax(240px, 300px); grid-template-rows: auto; gap: 32px; align-items: start; margin: 0; background: none; box-shadow: none; color: var(--opn-text); }
+.opn-web .opn-main { background: var(--opn-paper); border-radius: 16px; overflow: hidden; box-shadow: 0 1px 2px #0000000f, 0 14px 36px #00000014; }
+.opn-web :is(h1, h2, h3) { font-family: var(--opn-heading-font, inherit); }
+.opn-web .opn-issue-label { padding: 12px 36px; font-size: 15px; letter-spacing: .06em; text-transform: uppercase; }
+.opn-web .opn-kicker { padding: 28px 36px 0; font-size: 16px; letter-spacing: .04em; text-transform: uppercase; }
+.opn-web .opn-title { padding: 0 36px 8px; font-size: clamp(34px, 4.2vw, 54px); }
+.opn-web .opn-story { padding: 24px 36px 28px; font-size: 18px; line-height: 1.7; }
+.opn-web .opn-story + .opn-story { border-top: 1px solid #0000000f; }
+.opn-web .opn-story h2 { font-size: clamp(22px, 2.4vw, 28px); margin-bottom: 14px; }
+.opn-web .opn-story img { max-height: 420px; border-radius: 10px; }
+.opn-web .opn-callout { padding: 28px 36px; }
+.opn-web .opn-callout h2 { font-size: clamp(20px, 2.2vw, 26px); }
+.opn-web .opn-callout :is(p, ul) { font-size: 17px; }
+.opn-web .opn-sidebar { position: sticky; top: calc(var(--wp-admin--admin-bar--height, 0px) + 24px); padding: 0; background: none; }
+.opn-web .opn-sidebar__inner { padding: 28px 24px; border-radius: 16px; background: var(--opn-sidebar); color: var(--opn-on-sidebar); font-size: 15px; line-height: 1.6; box-shadow: 0 14px 36px #00000014; }
+.opn-web .opn-sidebar .opn-motto { font-size: 22px; margin: 0 0 24px; }
+.opn-web .opn-sidebar .opn-contact-card { margin: 0 -24px 22px; padding: 20px 24px; }
+.opn-web .opn-sidebar h2 { font-size: 17px; margin-top: 22px; }
+.opn-breadcrumb ol { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 0 0 24px; padding: 0; list-style: none; font-size: 14px; line-height: 1.4; color: #00000099; }
+.opn-breadcrumb li { margin: 0; }
+.opn-breadcrumb li + li::before { content: "›"; margin-right: 8px; color: #00000066; }
+.opn-breadcrumb a { color: var(--opn-heading); text-decoration: none; }
+.opn-breadcrumb a:hover, .opn-breadcrumb a:focus-visible { text-decoration: underline; }
+.opn-breadcrumb [aria-current] { color: inherit; }
+.opn-print-mode .opn-breadcrumb { display: none; }
+
+/* Reading on a phone: one column, shared sidebar shown once after the back page. */
 @media screen and (max-width: 700px) {
-    .opn-issue { margin: 16px; }
-    .opn-sheet { display: flex; flex-direction: column; }
-    .opn-sidebar { padding: 20px; }
-    .opn-sheet--front .opn-sidebar { display: none; }
-    .opn-main { order: 1; }
-    .opn-sidebar { order: 2; }
-    .opn-sheet-footer { order: 3; }
-    .opn-sidebar .opn-motto { font-size: 24px; margin-bottom: 20px; }
-    .opn-sheet .wp-block-columns { flex-direction: column; }
-    .opn-sheet .wp-block-column { flex-basis: auto !important; }
-    .opn-main .opn-title { font-size: 34px; }
-    .opn-main .opn-story { font-size: 18px; }
-    .opn-main .opn-story img { max-height: none; }
+    body:not(.opn-print-mode) .opn-issue { margin: 16px; }
+    body:not(.opn-print-mode) :is(.opn-sheet, .opn-web) { display: flex; flex-direction: column; }
+    body:not(.opn-print-mode) .opn-sidebar { padding: 20px; order: 2; }
+    body:not(.opn-print-mode) .opn-sheet--front .opn-sidebar { display: none; }
+    body:not(.opn-print-mode) .opn-main { order: 1; }
+    body:not(.opn-print-mode) .opn-sheet-footer { order: 3; }
+    body:not(.opn-print-mode) .opn-sidebar .opn-motto { font-size: 24px; margin-bottom: 20px; }
+    body:not(.opn-print-mode) :is(.opn-sheet, .opn-web) .wp-block-columns { flex-direction: column; }
+    body:not(.opn-print-mode) :is(.opn-sheet, .opn-web) .wp-block-column { flex-basis: auto !important; }
+    body:not(.opn-print-mode) .opn-main .opn-title { font-size: 34px; }
+    body:not(.opn-print-mode) .opn-main .opn-story img { max-height: none; }
+    .opn-newsletter-toolbar { padding: 10px 16px; }
+    body:not(.opn-print-mode) .opn-web { gap: 20px; }
+    body.opn-newsletter-single:not(.opn-print-mode) .opn-issue { margin: 0; }
+    body:not(.opn-print-mode) .opn-web .opn-sidebar { position: static; padding: 0; }
+    body:not(.opn-print-mode) .opn-web :is(.opn-issue-label, .opn-kicker, .opn-title, .opn-story, .opn-callout) { padding-left: 20px; padding-right: 20px; }
 }
+
+/* Two US Letter sheets: shared by the print preview and the printed page. */
+.opn-print-mode .opn-issue { width: 8in; max-width: none; margin: 24px auto; }
+.opn-print-mode .opn-sheet { width: 8in; height: 10.49in; grid-template-rows: minmax(0, 1fr) 0.3in; break-after: page; break-inside: avoid; }
+.opn-print-mode .opn-sheet:last-child { break-after: auto; }
+/* Low specificity so classed paragraphs (motto, issue date, kicker) keep their own sizes. */
+.opn-print-mode :where(.opn-issue .opn-sheet) p { margin: 0 0 0.06in; line-height: 1.32; font-size: inherit; text-indent: 0 !important; text-align: left; }
+.opn-print-mode .opn-issue .wp-block-group, .opn-print-mode .opn-issue .wp-block-columns, .opn-print-mode .opn-issue .wp-block-column { margin-block: 0 !important; }
+.opn-print-mode .opn-issue .opn-sheet h1, .opn-print-mode .opn-issue .opn-sheet h2, .opn-print-mode .opn-issue .opn-sheet h3 { font-family: Arial, sans-serif; font-weight: 700; margin: 0 0 0.07in; }
+.opn-print-mode .opn-sheet .wp-block-columns { gap: 0.14in; flex-direction: row; flex-wrap: nowrap !important; }
+.opn-print-mode .opn-sheet .wp-block-columns > .wp-block-column { flex-basis: 0 !important; flex-grow: 1; }
+.opn-print-mode .opn-sidebar { padding: 0.18in 0.16in; font-size: 10.8pt; }
+.opn-print-mode .opn-sheet--back .opn-sidebar { display: block; }
+.opn-print-mode .opn-sidebar h2 { font-size: 12pt; margin-top: 0.22in; }
+.opn-print-mode .opn-sidebar .opn-motto { font-size: 19pt; margin: 0.08in 0 0.28in; }
+.opn-print-mode .opn-sidebar .opn-contact-card { padding: 0.16in; margin: 0 -0.16in 0.16in; }
+.opn-print-mode .opn-sidebar .opn-qr-pending { font-size: 9pt; padding: 0.12in; margin: 0.2in 0; }
+.opn-print-mode .opn-sidebar .opn-logo { margin-top: 0.2in; }
+.opn-print-mode .opn-main .opn-hero img { height: 1.9in; object-fit: cover; }
+.opn-print-mode .opn-sheet--front .opn-main .opn-hero img { height: 1.5in; }
+.opn-print-mode .opn-main .opn-issue-label { font-size: 12pt; padding: 0.08in 0.14in; margin: 0; }
+.opn-print-mode .opn-main .opn-kicker { padding: 0.08in 0.14in 0; font-size: 13pt; margin-bottom: 0.02in; }
+.opn-print-mode .opn-main .opn-title { padding: 0 0.14in; font-size: 35pt; margin-bottom: 0.04in; }
+.opn-print-mode .opn-main .opn-story { padding: 0.08in 0.16in 0.12in; font-size: 11.4pt; }
+.opn-print-mode .opn-main .opn-story h2 { font-size: 17pt; }
+.opn-print-mode .opn-main .opn-story img { max-height: 1.65in; object-fit: cover; }
+.opn-print-mode .opn-sheet--front .opn-story .wp-block-column:first-child img { max-height: 1.15in; }
+.opn-print-mode .opn-main .opn-story .wp-block-image { margin-bottom: 0.08in; }
+.opn-print-mode .opn-issue .opn-main .opn-callout { padding: 0.13in 0.16in; font-size: 10.4pt; }
+.opn-print-mode .opn-main .opn-callout h2 { font-size: 14pt; margin-bottom: 0.06in; }
+.opn-print-mode .opn-main .opn-callout p, .opn-print-mode .opn-main .opn-callout ul { font-size: 10.4pt; line-height: 1.35; }
+.opn-print-mode .opn-main .opn-callout ul { padding-left: 0.16in; }
+.opn-print-mode .opn-sheet-footer { padding: 0.08in 0.14in; font-size: 7.5pt; }
+.opn-print-mode .opn-sheet[data-print-overflow="true"] { outline: 4px solid #b32d2e; outline-offset: 4px; }
+
 @page { size: letter portrait; margin: 0.25in; }
 @media print {
     html, body { margin: 0 !important; padding: 0 !important; background: white !important; }
     * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-    .opn-newsletter-toolbar, #wpadminbar { display: none !important; }
-    .opn-issue { width: 8in; max-width: none; margin: 0; }
-    .opn-sheet { width: 8in; height: 10.49in; margin: 0; box-shadow: none; grid-template-rows: minmax(0, 1fr) 0.3in; break-after: page; break-inside: avoid; }
-    .opn-sheet:last-child { break-after: auto; }
-    .opn-issue .opn-sheet p { margin: 0 0 0.06in; line-height: 1.32; font-size: inherit; text-indent: 0 !important; text-align: left; }
-    .opn-issue .wp-block-group, .opn-issue .wp-block-columns, .opn-issue .wp-block-column { margin-block: 0 !important; }
-    .opn-issue .opn-sheet h1, .opn-issue .opn-sheet h2, .opn-issue .opn-sheet h3 { font-family: Arial, sans-serif; font-weight: 700; margin: 0 0 0.07in; }
-    .opn-sheet .wp-block-columns { gap: 0.14in; flex-direction: row; flex-wrap: nowrap !important; }
-    .opn-sheet .wp-block-columns > .wp-block-column { flex-basis: 0 !important; flex-grow: 1; }
-    .opn-sidebar { padding: 0.18in 0.16in; font-size: 10.8pt; }
-    .opn-sheet--back .opn-sidebar { display: block; }
-    .opn-sidebar h2 { font-size: 12pt; margin-top: 0.22in; }
-    .opn-sidebar .opn-motto { font-size: 19pt; margin: 0.08in 0 0.28in; }
-    .opn-sidebar .opn-contact-card { padding: 0.16in; margin: 0 -0.16in 0.16in; }
-    .opn-sidebar .opn-qr-pending { font-size: 9pt; padding: 0.12in; margin: 0.2in 0; }
-    .opn-sidebar .opn-logo { margin-top: 0.2in; }
-    .opn-main .opn-hero img { height: 1.9in; object-fit: cover; }
-    .opn-sheet--front .opn-main .opn-hero img { height: 1.5in; }
-    .opn-main .opn-issue-label { font-size: 12pt; padding: 0.08in 0.14in; margin: 0; }
-    .opn-main .opn-kicker { padding: 0.08in 0.14in 0; font-size: 13pt; margin-bottom: 0.02in; }
-    .opn-main .opn-title { padding: 0 0.14in; font-size: 35pt; margin-bottom: 0.04in; }
-    .opn-main .opn-story { padding: 0.08in 0.16in 0.12in; font-size: 11.4pt; }
-    .opn-main .opn-story h2 { font-size: 17pt; }
-    .opn-main .opn-story img { max-height: 1.65in; object-fit: cover; }
-    .opn-sheet--front .opn-story .wp-block-column:first-child img { max-height: 1.15in; }
-    .opn-main .opn-story .wp-block-image { margin-bottom: 0.08in; }
-    .opn-issue .opn-main .opn-callout { padding: 0.13in 0.16in; font-size: 10.4pt; }
-    .opn-main .opn-callout h2 { font-size: 14pt; margin-bottom: 0.06in; }
-    .opn-main .opn-callout p, .opn-main .opn-callout ul { font-size: 10.4pt; line-height: 1.35; }
-    .opn-main .opn-callout ul { padding-left: 0.16in; }
-    .opn-sheet-footer { padding: 0.08in 0.14in; font-size: 7.5pt; }
+    .opn-newsletter-toolbar, .opn-web-actions, #wpadminbar { display: none !important; }
+    /* Without JavaScript (no beforeprint), still print the sheets rather than the web article. */
+    .opn-print { display: block !important; }
+    .opn-web, .opn-breadcrumb { display: none !important; }
+    body.opn-newsletter-single :not(:has(.opn-issue)):not(.opn-issue):not(.opn-issue *) { display: none !important; }
+    body.opn-newsletter-single :has(.opn-issue) { margin: 0 !important; padding: 0 !important; max-width: none !important; border: 0 !important; background: none !important; box-shadow: none !important; }
+    .opn-print-mode .opn-issue { margin: 0; }
+    .opn-print-mode .opn-sheet { margin: 0; box-shadow: none; outline: none !important; }
     .pmb-print-page .pmb-post, .pmb-print-page .pmb-posts, .pmb-print-page .pmb-main { margin: 0 !important; padding: 0 !important; max-width: none !important; }
     .pmb-print-page .pmb-post-title, .pmb-print-page .pmb-post-meta, .pmb-print-page .pmb-print-page-header { display: none !important; }
     .pmb-pro-print-page header.entry-header, .pmb-pro-print-page .pmb-title { display: none !important; }

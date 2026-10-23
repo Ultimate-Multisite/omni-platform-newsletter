@@ -1,0 +1,47 @@
+/* Omni Platform Newsletter admin pages and editor panel. */
+.opn-admin { max-width: 1100px; }
+.opn-page-header { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin: 12px 0 8px; }
+.opn-page-header h1 { margin: 0; padding: 0; }
+.opn-lead { font-size: 15px; max-width: 760px; color: #3c434a; }
+.opn-tip { color: #50575e; }
+.opn-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin: 20px 0; }
+.opn-card { display: flex; flex-direction: column; gap: 4px; padding: 18px 20px; background: #fff; border: 1px solid #dcdcde; border-radius: 8px; color: #1d2327; text-decoration: none; }
+a.opn-card:hover, a.opn-card:focus { border-color: #2271b1; box-shadow: 0 0 0 1px #2271b1; color: #1d2327; }
+.opn-card__value { font-size: 28px; line-height: 1.2; font-weight: 600; }
+.opn-card__value.dashicons { width: 28px; height: 28px; font-size: 28px; color: #2271b1; }
+.opn-card__label { color: #50575e; }
+.opn-card__link { margin-top: 6px; color: #2271b1; font-weight: 600; }
+.opn-empty { padding: 40px; text-align: center; background: #fff; border: 1px dashed #c3c4c7; border-radius: 8px; }
+.opn-empty-inline { padding: 16px; background: #fff; border: 1px solid #dcdcde; }
+.opn-table td { vertical-align: middle; padding-top: 12px; padding-bottom: 12px; }
+.opn-table__title strong { font-size: 15px; }
+.opn-actions { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 6px; }
+.opn-actions a { text-decoration: none; }
+.opn-danger, .opn-actions a.opn-danger { color: #b32d2e; }
+.opn-badge { display: inline-block; padding: 3px 10px; border-radius: 999px; background: #f0f0f1; color: #3c434a; font-size: 13px; line-height: 1.5; }
+.opn-badge--live, .opn-badge--email-sent, .opn-badge--sub-c { background: #e7f5ea; color: #1a5e2a; }
+.opn-badge--email-sending, .opn-badge--email-queued, .opn-badge--future, .opn-badge--sub-s { background: #fcf3dc; color: #6b4c00; }
+.opn-badge--email-error, .opn-badge--sub-b, .opn-badge--sub-p { background: #fcecec; color: #8a1f1f; }
+.opn-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+.opn-panel { background: #fff; border: 1px solid #dcdcde; border-radius: 8px; padding: 4px 20px 12px; margin-bottom: 16px; }
+.opn-panel h2 { font-size: 16px; }
+.opn-check { display: block; margin: 6px 0; }
+.opn-admin fieldset { margin: 8px 0 12px; }
+.opn-admin legend { font-weight: 600; margin-bottom: 4px; }
+.opn-search { margin: 20px 0 10px; display: flex; gap: 8px; }
+.opn-search input[type=search] { min-width: 280px; }
+.opn-settings { max-width: 760px; }
+.opn-advanced ul { list-style: disc; margin-left: 20px; }
+.opn-notice p { font-size: 14px; }
+
+/* Editor panel */
+.opn-panel__heading { margin: 22px 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: #50575e; }
+.opn-panel .opn-panel__heading:first-of-type { margin-top: 4px; }
+.opn-panel__status { display: flex; align-items: center; gap: 6px; margin: 4px 0 8px; }
+.opn-panel__status--sent { color: #1a5e2a; font-weight: 600; }
+.opn-panel__hint { color: #50575e; font-size: 12px; margin: 6px 0 0; }
+.opn-panel__spacer { height: 10px; }
+.opn-wide.components-button { width: 100%; justify-content: center; }
+.opn-send-modal { max-width: 480px; }
+.opn-send-modal__count { font-size: 15px; font-weight: 600; }
+.opn-send-modal__actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
