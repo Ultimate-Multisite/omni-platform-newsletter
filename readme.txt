@@ -3,7 +3,7 @@ Contributors: superdav42
 Tags: newsletter, nonprofit, email, print, pdf, block editor
 Requires at least: 6.9
 Requires PHP: 8.2
-Stable tag: 0.3.0
+Stable tag: 0.3.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -60,6 +60,9 @@ Filters: `omni_platform_newsletter_palette`, `omni_platform_newsletter_starter_p
 3. Go to Newsletters → Write a newsletter.
 
 == Changelog ==
+
+= 0.3.1 =
+* The send dialog says "1 subscriber" instead of "1 subscribers".
 
 = 0.3.0 =
 * The first newsletter is pre-filled from the site: name, tagline, month, the writer's name and email, website and giving page. Organizations can change any part (text or photos) with `omni_platform_newsletter_starter_parts`.
