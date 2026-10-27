@@ -131,9 +131,9 @@ function __($text, $domain = ''): string
     return $text;
 }
 
-function wp_kses_post($html): string
+function wp_kses($html, $allowed): string
 {
-    return (string) $html;
+    return strip_tags((string) $html, array_map(fn($tag) => '<' . $tag . '>', array_keys($allowed)));
 }
 
 function untrailingslashit($text): string
@@ -209,6 +209,8 @@ foreach (['sidebar', 'front', 'back', 'footer'] as $role) {
     assertTrue(substr_count($pattern, 'opn-source-' . $role) === 2, $role . ' pattern class occurs in metadata and HTML');
 }
 assertTrue(!str_contains(strtolower($pattern), 'cef'), 'starter pattern is organization-neutral');
+$blockText = OmniPlatform\Newsletter\starterPatternContent(['lead_html' => '<p>Story <strong>text</strong></p><div>more</div>']);
+assertTrue(str_contains($blockText, '<p>Story <strong>text</strong>more</p>'), 'starter parts are reduced to inline HTML inside their block');
 foreach (['Example Mission', 'Serving our town', 'Jane Doe', 'mailto:jane@example.org', date('F Y')] as $detail) {
     assertTrue(str_contains($pattern, $detail), 'starter pattern is pre-filled with ' . $detail);
 }

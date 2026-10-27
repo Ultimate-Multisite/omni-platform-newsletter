@@ -395,8 +395,9 @@ function givingPageUrl(): string
  * writes the stories: site name, tagline, this month, the writer's name and
  * email, the website address and the giving page.
  *
- * Text values are HTML (sanitized with wp_kses_post); image values are
- * attachment IDs (0 for none); help_items is a list of HTML list items.
+ * Text values are inline HTML (links, emphasis, line breaks; anything else is
+ * stripped so each part stays valid inside its block); image values are
+ * attachment IDs (0 for none); help_items is a list of inline-HTML list items.
  *
  * @return array<string, mixed>
  */
@@ -433,7 +434,7 @@ function starterParts(): array
         'title' => esc_html__('Write this issue’s headline', 'omni-platform-newsletter'),
         'lead_heading' => esc_html__('Your main story', 'omni-platform-newsletter'),
         'lead_image' => 0,
-        'lead_html' => esc_html__('Tell one story from this month: who was involved, what happened, and why it matters. Click a photo to replace it, or press + to add one.', 'omni-platform-newsletter'),
+        'lead_html' => esc_html__('Tell one story from this month: who was involved, what happened, and why it matters. Press + to add a photo.', 'omni-platform-newsletter'),
         'event_heading' => esc_html__('Coming up', 'omni-platform-newsletter'),
         'event_html' => esc_html__('Add the date, time and place of your next event, and how to sign up.', 'omni-platform-newsletter'),
         'more_heading' => esc_html__('More news', 'omni-platform-newsletter'),
@@ -460,6 +461,19 @@ function starterParts(): array
     return (array) apply_filters('omni_platform_newsletter_starter_parts', $parts);
 }
 
+/** Inline HTML only, so starter text can sit inside a paragraph, heading or list item. */
+function inlineHtml(string $html): string
+{
+    $attrs = ['class' => true, 'title' => true];
+
+    return wp_kses($html, [
+        'a' => ['href' => true, 'target' => true, 'rel' => true] + $attrs,
+        'br' => [],
+        'strong' => $attrs, 'b' => $attrs, 'em' => $attrs, 'i' => $attrs,
+        'span' => $attrs, 'mark' => $attrs, 'code' => $attrs, 'sub' => [], 'sup' => [],
+    ]);
+}
+
 /** Serialized block markup for an image attachment ('' when it no longer exists). */
 function starterImage(int $id): string
 {
@@ -479,7 +493,7 @@ function starterPatternContent(?array $parts = null): string
 {
     $defaults = starterParts();
     $p = array_merge($defaults, (array) ($parts ?? []));
-    $html = fn(string $key) => wp_kses_post((string) ($p[$key] ?? $defaults[$key]));
+    $html = fn(string $key) => inlineHtml((string) ($p[$key] ?? $defaults[$key]));
     $para = fn(string $key) => '<!-- wp:paragraph --><p>' . $html($key) . '</p><!-- /wp:paragraph -->';
     $heading = fn(string $key) => '<!-- wp:heading --><h2 class="wp-block-heading">' . $html($key) . '</h2><!-- /wp:heading -->';
     $classed = fn(string $class, string $key) => '<!-- wp:paragraph {"className":"' . $class . '"} --><p class="' . $class . '">' . $html($key) . '</p><!-- /wp:paragraph -->';
@@ -487,7 +501,7 @@ function starterPatternContent(?array $parts = null): string
         . '<div class="wp-block-group ' . $class . '">' . $inner . '</div><!-- /wp:group -->';
     $items = '';
     foreach ((array) ($p['help_items'] ?: $defaults['help_items']) as $item) {
-        $items .= '<!-- wp:list-item --><li>' . wp_kses_post((string) $item) . '</li><!-- /wp:list-item -->';
+        $items .= '<!-- wp:list-item --><li>' . inlineHtml((string) $item) . '</li><!-- /wp:list-item -->';
     }
 
     $sidebar = $group('opn-source-sidebar', $classed('opn-motto', 'motto')

@@ -92,27 +92,42 @@ const AUTO_THUMBNAIL_META = '_opn_auto_thumbnail';
  * Use the issue's first photo as its featured image (archive cards, social shares)
  * unless the writer chose one. Follows later photo changes until they do.
  */
-add_action('save_post', function ($id, $post) {
-    if (wp_is_post_revision($id) || !isIssue($post)) {
+function syncAutoThumbnail(\WP_Post $post): void
+{
+    if (wp_is_post_revision($post->ID) || !isIssue($post)) {
         return;
     }
 
     $current = (int) get_post_thumbnail_id($post);
-    $auto = (int) get_post_meta($id, AUTO_THUMBNAIL_META, true);
+    $auto = (int) get_post_meta($post->ID, AUTO_THUMBNAIL_META, true);
     if ($current > 0 && $current !== $auto) {
-        delete_post_meta($id, AUTO_THUMBNAIL_META);
+        delete_post_meta($post->ID, AUTO_THUMBNAIL_META);
         return;
     }
 
     $image = firstIssueImage($post);
     if ($image > 0) {
         set_post_thumbnail($post, $image);
-        update_post_meta($id, AUTO_THUMBNAIL_META, $image);
+        update_post_meta($post->ID, AUTO_THUMBNAIL_META, $image);
     } elseif ($auto > 0) {
         delete_post_thumbnail($post);
-        delete_post_meta($id, AUTO_THUMBNAIL_META);
+        delete_post_meta($post->ID, AUTO_THUMBNAIL_META);
+    }
+}
+
+add_action('save_post', function ($id, $post) {
+    if ($post instanceof \WP_Post) {
+        syncAutoThumbnail($post);
     }
 }, 20, 2);
+
+// The block editor saves through REST, which applies `featured_media` after save_post
+// (as 0 when none was chosen); sync again once it has.
+add_action('init', function () {
+    foreach (supportedPostTypes() as $type) {
+        add_action('rest_after_insert_' . $type, fn($post) => $post instanceof \WP_Post ? syncAutoThumbnail(get_post($post->ID)) : null);
+    }
+}, 30);
 
 /** [omni_newsletter_signup]: the subscription form of the delivery plugin, with a heading. */
 add_shortcode('omni_newsletter_signup', function () {
