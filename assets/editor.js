@@ -116,9 +116,10 @@
         const [busy, setBusy] = useState(false);
         const [error, setError] = useState('');
         const alreadySent = summary && summary.delivery.state === 'sent';
+        // wp_localize_script() turns top-level numbers into strings; _n() needs a number for "1 subscriber".
         const count = lists.length === 0
-            ? data.allCount
-            : data.lists.filter((l) => lists.includes(l.id)).reduce((sum, l) => sum + l.count, 0);
+            ? Number(data.allCount)
+            : data.lists.filter((l) => lists.includes(l.id)).reduce((sum, l) => sum + Number(l.count), 0);
 
         const send = async () => {
             setBusy(true);
