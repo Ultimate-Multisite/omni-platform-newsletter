@@ -152,7 +152,7 @@ function paletteCss(): string
 {
     $p = palette();
 
-    return '.opn-issue{'
+    return '.opn-issue,.opn-archive{'
         . '--opn-sidebar:' . $p['primary'] . ';--opn-on-sidebar:' . $p['on_primary'] . ';'
         . '--opn-dark:' . $p['dark'] . ';--opn-on-dark:' . $p['on_dark'] . ';'
         . '--opn-accent:' . $p['accent'] . ';--opn-on-accent:' . $p['on_accent'] . ';'

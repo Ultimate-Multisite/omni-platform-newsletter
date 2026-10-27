@@ -1,0 +1,54 @@
+/* Newsletter archive: a colored masthead, issue cards, and a sign-up box. Colors come from the theme palette (paletteCss). */
+.opn-archive { --opn-radius: 16px; padding-bottom: 64px; color: var(--opn-text, inherit); }
+.opn-archive > * + * { margin-block-start: 0; }
+
+.opn-archive__hero { margin: 0 0 48px; padding: clamp(40px, 7vw, 88px) 24px; background: linear-gradient(135deg, var(--opn-dark, #323650), var(--opn-sidebar, #565e70)); color: var(--opn-on-dark, #fff); }
+.opn-archive__hero .opn-archive__title { margin: 0; color: inherit; font-family: var(--opn-heading-font, inherit); font-size: clamp(40px, 6vw, 72px); line-height: 1.05; }
+.opn-archive__hero .opn-archive__intro { max-width: 640px; margin: 16px 0 0; margin-inline: 0 auto; color: inherit; font-size: clamp(17px, 1.6vw, 20px); line-height: 1.5; opacity: .92; }
+.opn-archive__hero > * { max-width: var(--wp--style--global--wide-size, 1180px) !important; }
+
+.opn-archive__issues { margin-bottom: 56px; }
+.opn-archive__issues .wp-block-post-template { gap: 28px; }
+.opn-issue-card { display: flex; flex-direction: column; height: 100%; margin: 0; overflow: hidden; background: var(--opn-paper, #fff); border: 1px solid #0000001a; border-radius: var(--opn-radius); box-shadow: 0 1px 2px #0000000f, 0 10px 28px #00000012; transition: transform .15s ease, box-shadow .15s ease; }
+.opn-issue-card:hover, .opn-issue-card:focus-within { transform: translateY(-2px); box-shadow: 0 2px 4px #00000014, 0 18px 40px #0000001f; }
+.opn-issue-card > * { margin: 0 !important; }
+.opn-issue-card .opn-issue-card__image { margin: 0; }
+/* Issues without a photo get a colored band so every card has the same rhythm. */
+.opn-issue-card:not(:has(.opn-issue-card__image))::before { content: ""; display: block; aspect-ratio: 3 / 2; background: radial-gradient(circle, #ffffff1f 1.5px, transparent 1.6px) 0 0 / 18px 18px, linear-gradient(135deg, var(--opn-dark, #323650), var(--opn-sidebar, #565e70)); }
+.opn-issue-card .opn-issue-card__image img { display: block; width: 100%; object-fit: cover; }
+.opn-issue-card__body { display: flex; flex: 1; flex-direction: column; gap: 10px; padding: 22px 24px 24px; }
+.opn-issue-card__body > * { margin: 0 !important; }
+.opn-issue-card .opn-issue-card__date { align-self: flex-start; padding: 4px 10px; border-radius: 999px; background: var(--opn-accent, #ffda36); color: var(--opn-on-accent, #323650); font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.opn-issue-card .opn-issue-card__title { font-family: var(--opn-heading-font, inherit); font-size: clamp(22px, 2vw, 26px); line-height: 1.2; }
+.opn-issue-card .opn-issue-card__title a { color: var(--opn-heading, inherit); text-decoration: none; }
+.opn-issue-card .opn-issue-card__title a:hover, .opn-issue-card .opn-issue-card__title a:focus-visible { text-decoration: underline; }
+.opn-issue-card .opn-issue-card__excerpt { flex: 1; color: inherit; font-size: 16px; line-height: 1.6; opacity: .85; }
+.opn-issue-card .opn-issue-card__excerpt .wp-block-post-excerpt__more-text { display: none; }
+.opn-issue-card .opn-issue-card__more { align-self: flex-start; margin-top: 6px !important; color: var(--opn-heading, inherit); font-weight: 700; text-decoration: none; }
+.opn-issue-card .opn-issue-card__more::after { content: " →"; }
+.opn-issue-card .opn-issue-card__more:hover, .opn-issue-card .opn-issue-card__more:focus-visible { text-decoration: underline; }
+.opn-archive__pagination { margin-top: 36px; }
+.opn-archive__empty { padding: 32px; border: 1px dashed #00000033; border-radius: var(--opn-radius); font-size: 18px; text-align: center; }
+
+.opn-archive__signup { padding: clamp(28px, 4vw, 44px); border-radius: var(--opn-radius); background: var(--opn-sidebar, #565e70); color: var(--opn-on-sidebar, #fff); }
+.opn-archive__signup:empty { display: none; }
+.opn-archive__signup > .opn-signup { max-width: none; }
+.opn-signup { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); grid-template-rows: auto 1fr; gap: 8px 48px; align-items: start; }
+.opn-signup > .opn-signup__title, .opn-signup > .opn-signup__text { grid-column: 1; }
+.opn-signup > :not(.opn-signup__title):not(.opn-signup__text) { grid-column: 2; grid-row: 1 / span 2; }
+.opn-signup .opn-signup__title { margin: 0 0 8px; color: inherit; font-family: var(--opn-heading-font, inherit); font-size: clamp(26px, 3vw, 34px); }
+.opn-signup .opn-signup__text { margin: 0 0 20px; font-size: 17px; line-height: 1.5; opacity: .92; }
+.opn-signup .tnp-subscription { max-width: none; margin: 0; }
+.opn-signup .tnp-subscription label { color: inherit; font-weight: 600; }
+.opn-signup .tnp-subscription input[type="email"], .opn-signup .tnp-subscription input[type="text"] { width: 100%; padding: 12px 14px; border: 0; border-radius: 8px; font-size: 16px; }
+.opn-signup .tnp-subscription .tnp-submit { padding: 12px 26px; border: 0; border-radius: 999px; background: var(--opn-accent, #ffda36); color: var(--opn-on-accent, #323650); font-size: 16px; font-weight: 700; cursor: pointer; }
+.opn-signup .tnp-privacy-field, .opn-signup .tnp-privacy-field a { color: inherit; }
+
+@media (max-width: 781px) {
+  .opn-archive__issues .wp-block-post-template { grid-template-columns: 1fr !important; }
+  .opn-signup { grid-template-columns: 1fr; }
+  .opn-signup > :not(.opn-signup__title):not(.opn-signup__text) { grid-column: 1; grid-row: auto; }
+}
+@media (min-width: 782px) and (max-width: 1080px) {
+  .opn-archive__issues .wp-block-post-template { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}

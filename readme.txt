@@ -3,7 +3,7 @@ Contributors: superdav42
 Tags: newsletter, nonprofit, email, print, pdf, block editor
 Requires at least: 6.9
 Requires PHP: 8.2
-Stable tag: 0.2.1
+Stable tag: 0.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -14,9 +14,14 @@ Write one newsletter. Publish it on your website, email it to subscribers, and p
 Omni Platform Newsletter gives nonprofits one simple Newsletters area:
 
 * **Write** each issue once in the block editor, in four labeled sections:
-  Sidebar, Front page, Back page and Footer. The sidebar and footer carry over
-  to the next issue automatically.
-* **Publish** it on the website (with a public newsletter archive).
+  Sidebar, Front page, Back page and Footer. The first issue is pre-filled from
+  the site (name, tagline, this month, the writer's contact details, website and
+  giving page), so only the stories need writing. The sidebar and footer carry
+  over to the next issue automatically.
+* **Publish** it on the website, with a newsletter archive of cards (each
+  issue's first photo and lead-story summary) and a sign-up box. Block themes
+  get the archive template automatically; `[omni_newsletter_signup]` adds the
+  sign-up box anywhere.
 * **Email** it: send yourself a test, then send to all subscribers or chosen
   lists, with the recipient count confirmed first. Each email has a personal
   unsubscribe link and, once published, a link to the website version.
@@ -42,7 +47,8 @@ administrators on multisite, or anyone granted it through the
 Colors come from the active theme's palette (link color, a darker shade, its brightest
 strong color, text and background), so web, print and email match the website.
 
-Filters: `omni_platform_newsletter_palette`, `omni_platform_newsletter_starter_content`,
+Filters: `omni_platform_newsletter_palette`, `omni_platform_newsletter_starter_parts`
+(pre-filled first-issue text and photos), `omni_platform_newsletter_starter_content`,
 `omni_platform_newsletter_email_colors`, `omni_platform_newsletter_email_html`,
 `omni_platform_newsletter_post_types`,
 `omni_platform_newsletter_user_manages_engines`.
@@ -54,6 +60,12 @@ Filters: `omni_platform_newsletter_palette`, `omni_platform_newsletter_starter_c
 3. Go to Newsletters → Write a newsletter.
 
 == Changelog ==
+
+= 0.3.0 =
+* The first newsletter is pre-filled from the site: name, tagline, month, the writer's name and email, website and giving page. Organizations can change any part (text or photos) with `omni_platform_newsletter_starter_parts`.
+* Newsletter archive for block themes: issue cards with the first photo, month and lead-story summary, plus a sign-up box (`[omni_newsletter_signup]`).
+* Each issue's first photo becomes its featured image until the writer picks one, and its excerpt is the lead story instead of the page masthead.
+* Links in callouts and the printed footer use the panel's text color so they stay readable.
 
 = 0.2.1 =
 * A blank Newsletter sender name or address now defaults to the site's own name and WordPress From address (computed per site, never stored), so sites copied from a template send as themselves.

@@ -38,7 +38,7 @@
 :is(.opn-sheet, .opn-web) .wp-block-column { flex: 1; min-width: 0; }
 .opn-sidebar { background: var(--opn-sidebar); color: var(--opn-on-sidebar); padding: 24px 20px; font-size: 16px; }
 .opn-sidebar h2 { color: var(--opn-accent); font-size: 19px; margin-top: 28px; }
-.opn-sidebar a { color: inherit; overflow-wrap: anywhere; }
+.opn-sidebar a, .opn-callout a, .opn-sheet-footer a { color: inherit; overflow-wrap: anywhere; }
 .opn-sidebar .opn-motto { text-align: center; font-size: 27px; line-height: 1.25; margin: 6px 0 36px; }
 .opn-sidebar .opn-contact-card { background: var(--opn-dark); color: var(--opn-on-dark); margin: 0 -20px 22px; padding: 20px; }
 .opn-sidebar .opn-contact-card h2 { margin-top: 0; }
