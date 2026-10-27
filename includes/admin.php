@@ -417,7 +417,7 @@ function renderSubscribersPage(): void
 function renderSettingsPage(): void
 {
     $lists = deliveryLists();
-    $main = (array) get_option('newsletter_main', []);
+    $main = storedNewsletterMain();
     $accounts = socialAccounts();
     require __DIR__ . '/../views/settings.php';
 }
@@ -442,7 +442,7 @@ add_action('admin_post_opn_save_settings', function () {
     ]);
 
     if (deliveryAvailable()) {
-        $main = (array) get_option('newsletter_main', []);
+        $main = storedNewsletterMain();
         $main['sender_name'] = sanitize_text_field(wp_unslash((string) ($_POST['sender_name'] ?? '')));
         $reply = sanitize_email(wp_unslash((string) ($_POST['reply_to'] ?? '')));
         $main['reply_to'] = is_email($reply) ? $reply : '';

@@ -96,34 +96,61 @@ function subscriberStats(): array
     return $stats;
 }
 
+/** WordPress's own From address, which hosting platforms filter to a verified sender. */
+function defaultSenderEmail(): string
+{
+    $host = (string) preg_replace('/^www\./', '', (string) wp_parse_url(home_url(), PHP_URL_HOST));
+    $email = sanitize_email((string) apply_filters('wp_mail_from', 'wordpress@' . $host));
+
+    return is_email($email) ? $email : '';
+}
+
 /**
- * The address newsletters are sent from.
+ * Fill a blank Newsletter sender name/address when the option is read.
  *
- * The Newsletter plugin sends with an empty From header (which every mail
- * transport rejects) when its sender address was never set, for example on a
- * site cloned from a template. Fall back to WordPress's own From address, which
- * hosting platforms already filter to a verified sender.
+ * The Newsletter plugin sends with an empty From name (inboxes show only the
+ * address) or an empty From address (every transport rejects it) when they were
+ * never set, for example on a site cloned from a template. Defaults are computed
+ * per site at read time and never stored, so a template can leave them blank and
+ * each copy sends as itself, following later changes to the site name.
  */
+function fillSenderDefaults($value)
+{
+    if (!is_array($value)) {
+        return $value;
+    }
+    if (trim((string) ($value['sender_name'] ?? '')) === '') {
+        $value['sender_name'] = wp_specialchars_decode((string) get_option('blogname'), ENT_QUOTES);
+    }
+    if (!is_email((string) ($value['sender_email'] ?? ''))) {
+        $value['sender_email'] = defaultSenderEmail();
+    }
+
+    return $value;
+}
+
+add_filter('option_newsletter_main', __NAMESPACE__ . '\\fillSenderDefaults');
+
+/** The stored Newsletter main options, without computed defaults (for the settings screen). */
+function storedNewsletterMain(): array
+{
+    remove_filter('option_newsletter_main', __NAMESPACE__ . '\\fillSenderDefaults');
+    $main = (array) get_option('newsletter_main', []);
+    add_filter('option_newsletter_main', __NAMESPACE__ . '\\fillSenderDefaults');
+
+    return $main;
+}
+
+/** The address newsletters are sent from ('' when none can be determined). */
 function senderEmail(): string
 {
     if (!deliveryAvailable()) {
         return '';
     }
 
-    $main = (array) get_option('newsletter_main', []);
-    $current = sanitize_email((string) ($main['sender_email'] ?? ''));
-    if (is_email($current)) {
-        return $current;
-    }
+    $email = sanitize_email((string) (((array) get_option('newsletter_main', []))['sender_email'] ?? ''));
 
-    $host = (string) preg_replace('/^www\./', '', (string) wp_parse_url(home_url(), PHP_URL_HOST));
-    $fallback = sanitize_email((string) apply_filters('wp_mail_from', 'wordpress@' . $host));
-    if (is_email($fallback)) {
-        $main['sender_email'] = $fallback;
-        update_option('newsletter_main', $main);
-    }
-
-    return is_email($fallback) ? $fallback : '';
+    return is_email($email) ? $email : '';
 }
 
 /** Default audience (list IDs) chosen in settings; empty means all confirmed subscribers. */

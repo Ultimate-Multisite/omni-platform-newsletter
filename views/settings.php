@@ -30,7 +30,7 @@ $defaultLists = defaultAudience();
             <?php if (deliveryAvailable()) : ?>
                 <p><label for="opn-sender-name"><?php esc_html_e('From name', 'omni-platform-newsletter'); ?></label><br>
                     <input id="opn-sender-name" class="regular-text" type="text" name="sender_name" value="<?php echo esc_attr((string) ($main['sender_name'] ?? '')); ?>" placeholder="<?php echo esc_attr(get_bloginfo('name')); ?>">
-                    <br><span class="description"><?php esc_html_e('Shown as the sender in your subscribers’ inboxes.', 'omni-platform-newsletter'); ?></span></p>
+                    <br><span class="description"><?php esc_html_e('Shown as the sender in your subscribers’ inboxes. Leave blank to use your website name.', 'omni-platform-newsletter'); ?></span></p>
                 <p><label for="opn-reply-to"><?php esc_html_e('Replies go to', 'omni-platform-newsletter'); ?></label><br>
                     <input id="opn-reply-to" class="regular-text" type="email" name="reply_to" value="<?php echo esc_attr((string) ($main['reply_to'] ?? '')); ?>" placeholder="<?php esc_attr_e('name@example.org', 'omni-platform-newsletter'); ?>">
                     <br><span class="description"><?php esc_html_e('When a subscriber clicks Reply, their message goes to this address.', 'omni-platform-newsletter'); ?></span></p>
