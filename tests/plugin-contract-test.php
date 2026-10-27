@@ -60,6 +60,92 @@ function parse_blocks($content): array
     return $content;
 }
 
+function add_shortcode(...$arguments): void
+{
+}
+
+// Site details the starter newsletter is pre-filled from.
+function get_bloginfo($show): string
+{
+    return $show === 'name' ? 'Example Mission' : 'Serving our town';
+}
+
+function wp_get_current_user(): object
+{
+    return new class {
+        public string $first_name = 'Jane';
+        public string $last_name = 'Doe';
+        public string $display_name = 'jane';
+        public string $user_email = 'jane@example.org';
+        public string $user_login = 'jane';
+
+        public function exists(): bool
+        {
+            return true;
+        }
+    };
+}
+
+function get_page_by_path($path)
+{
+    return null;
+}
+
+function home_url($path = ''): string
+{
+    return 'https://example.org' . $path;
+}
+
+function wp_parse_url($url, $component = -1)
+{
+    return parse_url($url, $component);
+}
+
+function wp_specialchars_decode($text, $quotes = 0): string
+{
+    return htmlspecialchars_decode((string) $text, ENT_QUOTES);
+}
+
+function wp_date($format): string
+{
+    return date($format);
+}
+
+function esc_html($text): string
+{
+    return htmlspecialchars((string) $text, ENT_QUOTES);
+}
+
+function esc_attr($text): string
+{
+    return htmlspecialchars((string) $text, ENT_QUOTES);
+}
+
+function esc_url($url): string
+{
+    return (string) $url;
+}
+
+function __($text, $domain = ''): string
+{
+    return $text;
+}
+
+function wp_kses_post($html): string
+{
+    return (string) $html;
+}
+
+function untrailingslashit($text): string
+{
+    return rtrim((string) $text, '/\\');
+}
+
+function wp_get_attachment_image_url($id, $size = 'thumbnail')
+{
+    return false;
+}
+
 require dirname(__DIR__) . '/omni-platform-newsletter.php';
 
 function block(string $class): array
@@ -123,5 +209,8 @@ foreach (['sidebar', 'front', 'back', 'footer'] as $role) {
     assertTrue(substr_count($pattern, 'opn-source-' . $role) === 2, $role . ' pattern class occurs in metadata and HTML');
 }
 assertTrue(!str_contains(strtolower($pattern), 'cef'), 'starter pattern is organization-neutral');
+foreach (['Example Mission', 'Serving our town', 'Jane Doe', 'mailto:jane@example.org', date('F Y')] as $detail) {
+    assertTrue(str_contains($pattern, $detail), 'starter pattern is pre-filled with ' . $detail);
+}
 
 echo 'PASS: Omni Platform Newsletter content contract' . PHP_EOL;

@@ -377,19 +377,137 @@ add_action('save_post_newspack_nl_cpt', function ($id, $post) {
     }
 }, 10, 2);
 
-/** Return a content-neutral pattern; organizations provide all facts and assets. */
-function starterPatternContent(): string
+/** The site's published giving page, if it has one ('' otherwise). */
+function givingPageUrl(): string
 {
-    return <<<'BLOCKS'
-<!-- wp:group {"className":"opn-source-sidebar","lock":{"move":true,"remove":true}} --><div class="wp-block-group opn-source-sidebar"><!-- wp:paragraph {"className":"opn-motto"} --><p class="opn-motto">Organization motto</p><!-- /wp:paragraph --><!-- wp:group {"className":"opn-contact-card"} --><div class="wp-block-group opn-contact-card"><!-- wp:heading --><h2 class="wp-block-heading">Contact details</h2><!-- /wp:heading --><!-- wp:paragraph --><p>Add approved names, roles, phone numbers, email addresses, and mailing address.</p><!-- /wp:paragraph --></div><!-- /wp:group --><!-- wp:heading --><h2 class="wp-block-heading">Support our work</h2><!-- /wp:heading --><!-- wp:paragraph --><p>Add approved giving details and QR destination.</p><!-- /wp:paragraph --></div><!-- /wp:group -->
-<!-- wp:group {"className":"opn-source-front","lock":{"move":true,"remove":true}} --><div class="wp-block-group opn-source-front"><!-- wp:paragraph {"className":"opn-issue-label"} --><p class="opn-issue-label">Month Year</p><!-- /wp:paragraph --><!-- wp:paragraph {"className":"opn-kicker"} --><p class="opn-kicker">Organization newsletter</p><!-- /wp:paragraph --><!-- wp:heading {"level":1,"className":"opn-title"} --><h1 class="wp-block-heading opn-title">Newsletter title</h1><!-- /wp:heading --><!-- wp:group {"className":"opn-story"} --><div class="wp-block-group opn-story"><!-- wp:heading --><h2 class="wp-block-heading">Lead story</h2><!-- /wp:heading --><!-- wp:paragraph --><p>Add approved story copy and photographs.</p><!-- /wp:paragraph --></div><!-- /wp:group --><!-- wp:group {"className":"opn-callout"} --><div class="wp-block-group opn-callout"><!-- wp:heading --><h2 class="wp-block-heading">Upcoming opportunity</h2><!-- /wp:heading --><!-- wp:paragraph --><p>Add current, confirmed event information.</p><!-- /wp:paragraph --></div><!-- /wp:group --></div><!-- /wp:group -->
-<!-- wp:group {"className":"opn-source-back","lock":{"move":true,"remove":true}} --><div class="wp-block-group opn-source-back"><!-- wp:group {"className":"opn-story"} --><div class="wp-block-group opn-story"><!-- wp:heading --><h2 class="wp-block-heading">More news</h2><!-- /wp:heading --><!-- wp:paragraph --><p>Add approved story copy and photographs.</p><!-- /wp:paragraph --></div><!-- /wp:group --><!-- wp:group {"className":"opn-callout"} --><div class="wp-block-group opn-callout"><!-- wp:heading --><h2 class="wp-block-heading">Requests and next steps</h2><!-- /wp:heading --><!-- wp:list --><ul class="wp-block-list"><li>Add a current item.</li><li>Add a current item.</li></ul><!-- /wp:list --></div><!-- /wp:group --></div><!-- /wp:group -->
-<!-- wp:paragraph {"className":"opn-source-footer","lock":{"move":true,"remove":true}} --><p class="opn-source-footer">Add the organization website and approved legal footer.</p><!-- /wp:paragraph -->
-BLOCKS;
+    foreach (['donate', 'give', 'giving', 'support-us'] as $slug) {
+        $page = get_page_by_path($slug);
+        if ($page instanceof \WP_Post && $page->post_status === 'publish') {
+            return (string) get_permalink($page);
+        }
+    }
+
+    return '';
 }
 
-add_action('init', function () {
-    if (function_exists('register_block_pattern')) {
+/**
+ * The parts of a first newsletter, pre-filled from the site so a new user only
+ * writes the stories: site name, tagline, this month, the writer's name and
+ * email, the website address and the giving page.
+ *
+ * Text values are HTML (sanitized with wp_kses_post); image values are
+ * attachment IDs (0 for none); help_items is a list of HTML list items.
+ *
+ * @return array<string, mixed>
+ */
+function starterParts(): array
+{
+    $siteName = wp_specialchars_decode((string) get_bloginfo('name'), ENT_QUOTES);
+    $tagline = wp_specialchars_decode((string) get_bloginfo('description'), ENT_QUOTES);
+    $home = home_url('/');
+    $host = (string) preg_replace('/^www\./', '', (string) wp_parse_url($home, PHP_URL_HOST));
+    $user = wp_get_current_user();
+    $name = $user->exists() ? trim($user->first_name . ' ' . $user->last_name) : '';
+    if ($name === '' && $user->exists() && $user->display_name !== $user->user_login) {
+        $name = $user->display_name; // A username is not a name to sign a letter with.
+    }
+    $email = $user->exists() ? (string) $user->user_email : '';
+    $give = givingPageUrl();
+    $link = fn(string $url, string $label) => '<a href="' . esc_url($url) . '">' . esc_html($label) . '</a>';
+    $site = $link($home, $host);
+    $mail = $email !== '' ? $link('mailto:' . $email, $email) : '';
+    $contact = $mail !== '' ? $mail : $site;
+
+    $parts = [
+        'motto' => esc_html($tagline !== '' ? $tagline : $siteName),
+        'contact_heading' => esc_html__('Contact us', 'omni-platform-newsletter'),
+        'contact_html' => implode('<br>', array_filter([esc_html($name), $mail, $site])),
+        'give_heading' => esc_html__('Support our work', 'omni-platform-newsletter'),
+        'give_html' => $give !== ''
+            /* translators: %s: link to the giving page */
+            ? sprintf(esc_html__('Your gifts make this work possible. Give online at %s.', 'omni-platform-newsletter'), $link($give, untrailingslashit((string) preg_replace('#^https?://(www\.)?#', '', $give))))
+            /* translators: %s: email or website link */
+            : sprintf(esc_html__('Your gifts make this work possible. Contact us at %s to give.', 'omni-platform-newsletter'), $contact),
+        'label' => esc_html(wp_date('F Y')),
+        'kicker' => esc_html($siteName),
+        'title' => esc_html__('Write this issue’s headline', 'omni-platform-newsletter'),
+        'lead_heading' => esc_html__('Your main story', 'omni-platform-newsletter'),
+        'lead_image' => 0,
+        'lead_html' => esc_html__('Tell one story from this month: who was involved, what happened, and why it matters. Click a photo to replace it, or press + to add one.', 'omni-platform-newsletter'),
+        'event_heading' => esc_html__('Coming up', 'omni-platform-newsletter'),
+        'event_html' => esc_html__('Add the date, time and place of your next event, and how to sign up.', 'omni-platform-newsletter'),
+        'more_heading' => esc_html__('More news', 'omni-platform-newsletter'),
+        'more_image' => 0,
+        'more_html' => esc_html__('Share a second story, a thank-you, or a volunteer spotlight.', 'omni-platform-newsletter'),
+        'help_heading' => esc_html__('How you can help', 'omni-platform-newsletter'),
+        'help_items' => [
+            esc_html__('Pray for our work and the people we serve.', 'omni-platform-newsletter'),
+            /* translators: %s: email or website link */
+            sprintf(esc_html__('Volunteer: contact us at %s.', 'omni-platform-newsletter'), $contact),
+            $give !== ''
+                /* translators: %s: link to the giving page */
+                ? sprintf(esc_html__('Give online at %s.', 'omni-platform-newsletter'), $link($give, __('our giving page', 'omni-platform-newsletter')))
+                : esc_html__('Give: reply to this newsletter to find out how.', 'omni-platform-newsletter'),
+        ],
+        'footer_html' => esc_html($siteName) . ' · ' . $site,
+    ];
+
+    /**
+     * Pre-filled parts of an organization's first newsletter.
+     *
+     * @param array<string, mixed> $parts See starterParts().
+     */
+    return (array) apply_filters('omni_platform_newsletter_starter_parts', $parts);
+}
+
+/** Serialized block markup for an image attachment ('' when it no longer exists). */
+function starterImage(int $id): string
+{
+    $url = $id > 0 ? wp_get_attachment_image_url($id, 'large') : false;
+    if (!$url) {
+        return '';
+    }
+    $alt = (string) get_post_meta($id, '_wp_attachment_image_alt', true);
+
+    return '<!-- wp:image {"id":' . $id . ',"sizeSlug":"large","linkDestination":"none"} -->'
+        . '<figure class="wp-block-image size-large"><img src="' . esc_url($url) . '" alt="' . esc_attr($alt) . '" class="wp-image-' . $id . '"/></figure>'
+        . '<!-- /wp:image -->';
+}
+
+/** Build the four-section starter newsletter from its parts (see starterParts()). */
+function starterPatternContent(?array $parts = null): string
+{
+    $defaults = starterParts();
+    $p = array_merge($defaults, (array) ($parts ?? []));
+    $html = fn(string $key) => wp_kses_post((string) ($p[$key] ?? $defaults[$key]));
+    $para = fn(string $key) => '<!-- wp:paragraph --><p>' . $html($key) . '</p><!-- /wp:paragraph -->';
+    $heading = fn(string $key) => '<!-- wp:heading --><h2 class="wp-block-heading">' . $html($key) . '</h2><!-- /wp:heading -->';
+    $classed = fn(string $class, string $key) => '<!-- wp:paragraph {"className":"' . $class . '"} --><p class="' . $class . '">' . $html($key) . '</p><!-- /wp:paragraph -->';
+    $group = fn(string $class, string $inner, bool $locked = false) => '<!-- wp:group {"className":"' . $class . '"' . ($locked ? ',"lock":{"move":true,"remove":true}' : '') . '} -->'
+        . '<div class="wp-block-group ' . $class . '">' . $inner . '</div><!-- /wp:group -->';
+    $items = '';
+    foreach ((array) ($p['help_items'] ?: $defaults['help_items']) as $item) {
+        $items .= '<!-- wp:list-item --><li>' . wp_kses_post((string) $item) . '</li><!-- /wp:list-item -->';
+    }
+
+    $sidebar = $group('opn-source-sidebar', $classed('opn-motto', 'motto')
+        . $group('opn-contact-card', $heading('contact_heading') . $para('contact_html'))
+        . $heading('give_heading') . $para('give_html'), true);
+    $front = $group('opn-source-front', $classed('opn-issue-label', 'label') . $classed('opn-kicker', 'kicker')
+        . '<!-- wp:heading {"level":1,"className":"opn-title"} --><h1 class="wp-block-heading opn-title">' . $html('title') . '</h1><!-- /wp:heading -->'
+        . $group('opn-story', $heading('lead_heading') . starterImage((int) $p['lead_image']) . $para('lead_html'))
+        . $group('opn-callout', $heading('event_heading') . $para('event_html')), true);
+    $back = $group('opn-source-back', $group('opn-story', $heading('more_heading') . starterImage((int) $p['more_image']) . $para('more_html'))
+        . $group('opn-callout', $heading('help_heading') . '<!-- wp:list --><ul class="wp-block-list">' . $items . '</ul><!-- /wp:list -->'), true);
+    $footer = '<!-- wp:paragraph {"className":"opn-source-footer","lock":{"move":true,"remove":true}} --><p class="opn-source-footer">' . $html('footer_html') . '</p><!-- /wp:paragraph -->';
+
+    return implode("\n", [$sidebar, $front, $back, $footer]);
+}
+
+/** Only editors need the pattern; building it reads the site and the current user. */
+function registerStarterPattern(): void
+{
+    if (function_exists('register_block_pattern') && !\WP_Block_Patterns_Registry::get_instance()->is_registered('omni-platform-newsletter/duplex-starter')) {
         register_block_pattern('omni-platform-newsletter/duplex-starter', [
             'title' => __('Two-page newsletter layout', 'omni-platform-newsletter'),
             'description' => __('Enter the Sidebar and Footer once; Front and Back become the two printed pages.', 'omni-platform-newsletter'),
@@ -397,12 +515,16 @@ add_action('init', function () {
             'content' => starterPatternContent(),
         ]);
     }
-});
+}
+
+add_action('admin_init', __NAMESPACE__ . '\\registerStarterPattern');
+add_action('rest_api_init', __NAMESPACE__ . '\\registerStarterPattern');
 
 require_once __DIR__ . '/includes/palette.php';
 require_once __DIR__ . '/includes/capabilities.php';
 require_once __DIR__ . '/includes/delivery.php';
 require_once __DIR__ . '/includes/social.php';
 require_once __DIR__ . '/includes/rest.php';
+require_once __DIR__ . '/includes/archive.php';
 // Admin screens plus helpers (settings, print links) that the front end also uses.
 require_once __DIR__ . '/includes/admin.php';
