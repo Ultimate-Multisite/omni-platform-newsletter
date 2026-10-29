@@ -118,7 +118,7 @@
             `${w}${sel} ${headings},${w}${sel} .opn-kicker{color:${x.heading};}`,
             `${w}${sel} .opn-title{color:${x.title};}`,
             `${w}${sel} :is(.opn-issue-label,.is-style-opn-label,.is-style-opn-tag){background:${x.label};color:${x.labelText};padding:6px 14px;font-weight:700;text-align:right;}`,
-            `${w}${sel} .is-style-opn-tag{width:fit-content;max-width:90%;margin-left:auto!important;margin-top:-1.8em!important;position:relative;z-index:1;}`,
+            `${w}${sel} .is-style-opn-tag{width:fit-content;max-width:90%;margin-left:auto!important;margin-right:0!important;margin-top:-1.8em!important;position:relative;z-index:1;}`,
             `${w}${sel} .opn-callout{background:${x.callout};color:${x.calloutText};padding:14px 18px;}`,
             `${w}${sel} .opn-callout ${headings}{color:${x.calloutHeading};}`,
             `${w}${sel} a{color:inherit;}`,
@@ -132,7 +132,8 @@
             + `${w}.opn-source-sidebar .opn-contact-card{background:${s.card};color:${s.cardText};padding:16px;}`
             + `${w}.opn-source-sidebar .opn-contact-card ${headings}{color:${s.cardHeading};}`
             + `${w}.opn-source-footer{background:${s.footer}!important;color:${s.footerText};}`
-            + `${w}.opn-source-footer a{color:inherit;}`;
+            + `${w}.opn-source-footer a{color:inherit;}`
+            + `${w}[class*="opn-source-"] mark.has-inline-color{background-color:transparent;}`;
     }
 
     /** Write the preview CSS into the editor canvas (an iframe in current WordPress). */
