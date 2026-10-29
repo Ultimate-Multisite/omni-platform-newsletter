@@ -149,8 +149,8 @@
 /* Editor font sizes (S, M, L, XL) scale with the printed text instead of the theme's screen sizes. */
 .opn-print-mode .opn-sheet .has-small-font-size { font-size: 0.85em !important; }
 .opn-print-mode .opn-sheet .has-medium-font-size { font-size: 1em !important; }
-.opn-print-mode .opn-sheet .has-large-font-size { font-size: 1.3em !important; }
-.opn-print-mode .opn-sheet .has-x-large-font-size { font-size: 1.7em !important; }
+.opn-print-mode .opn-sheet .has-large-font-size { font-size: 1.2em !important; }
+.opn-print-mode .opn-sheet .has-x-large-font-size { font-size: 1.6em !important; }
 .opn-print-mode .opn-sheet .has-xx-large-font-size { font-size: 2.1em !important; }
 .opn-print-mode .opn-main .opn-callout img { width: auto; max-width: 100%; max-height: 1.3in; margin-inline: auto; object-fit: contain; }
 .opn-print-mode .opn-sidebar { padding: 0.18in 0.16in; font-size: 10.8pt; }

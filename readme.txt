@@ -3,7 +3,7 @@ Contributors: superdav42
 Tags: newsletter, nonprofit, email, print, pdf, block editor
 Requires at least: 6.9
 Requires PHP: 8.2
-Stable tag: 0.3.1
+Stable tag: 0.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -60,6 +60,13 @@ Filters: `omni_platform_newsletter_palette`, `omni_platform_newsletter_starter_p
 3. Go to Newsletters → Write a newsletter.
 
 == Changelog ==
+
+= 0.4.0 =
+* Colours panel in the editor: pick a colour scheme for each newsletter, give the front and back pages different colours, and fine-tune the page, title, labels, highlight boxes, sidebar, motto, contact box and footer. The editor shows the colours as you choose them; web, print and email use them too. Schemes can be changed with `omni_platform_newsletter_color_schemes`; resolved colours with `omni_platform_newsletter_issue_colors`.
+* Paragraph styles "Issue label" and "Tag over photo".
+* Print keeps editor column widths (25 / 50 / 25 and similar), centred or right-aligned text, and scales editor font sizes to the page.
+* A right-aligned date directly above the kicker prints on the kicker's line.
+* Email: headings inside columns, the motto and contact box follow the issue colours; colours chosen on a block in the editor are kept.
 
 = 0.3.1 =
 * The send dialog says "1 subscriber" instead of "1 subscribers".

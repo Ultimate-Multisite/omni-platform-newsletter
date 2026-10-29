@@ -4,7 +4,7 @@
  * Plugin Name: Omni Platform Newsletter
  * Plugin URI: https://github.com/Ultimate-Multisite/omni-platform-newsletter
  * Description: Write one block newsletter and publish it to your website, email it to subscribers, and print it as a two-page letter.
- * Version: 0.3.1
+ * Version: 0.4.0
  * Requires at least: 6.9
  * Requires PHP: 8.2
  * Requires Plugins: newspack-newsletters, newsletter
@@ -19,7 +19,7 @@ namespace OmniPlatform\Newsletter;
 
 defined('ABSPATH') || exit;
 
-const VERSION = '0.3.1';
+const VERSION = '0.4.0';
 const ISSUE_META_KEY = '_omni_platform_newsletter_layout';
 
 /** Return post types supported by the current authoring adapter. */

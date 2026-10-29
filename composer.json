@@ -35,6 +35,7 @@
       "/.gitattributes",
       "/.gitignore",
       "/AGENTS.md",
+      "/docs",
       "/composer.lock",
       "/phpcs.xml",
       "/tests"
