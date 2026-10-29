@@ -35,6 +35,7 @@
       "/.gitattributes",
       "/.gitignore",
       "/AGENTS.md",
+      "/docs",
       "/composer.lock",
       "/phpcs.xml",
       "/tests"
@@ -50,7 +51,7 @@
   },
   "scripts": {
     "lint:php": "for f in omni-platform-newsletter.php web-template.php includes/*.php views/*.php tests/*.php; do php -l \"$f\" || exit 1; done",
-    "lint:js": "node --check overflow.js && node --check assets/editor.js",
+    "lint:js": "node --check overflow.js && node --check assets/editor.js && node --check assets/colors.js",
     "phpcs": "phpcs",
     "test:contract": "php tests/plugin-contract-test.php",
     "test": [
