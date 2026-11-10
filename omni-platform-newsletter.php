@@ -4,7 +4,7 @@
  * Plugin Name: Omni Platform Newsletter
  * Plugin URI: https://github.com/Ultimate-Multisite/omni-platform-newsletter
  * Description: Write one block newsletter and publish it to your website, email it to subscribers, and print it as a two-page letter.
- * Version: 0.3.1
+ * Version: 0.4.0
  * Requires at least: 6.9
  * Requires PHP: 8.2
  * Requires Plugins: newspack-newsletters, newsletter
@@ -19,7 +19,7 @@ namespace OmniPlatform\Newsletter;
 
 defined('ABSPATH') || exit;
 
-const VERSION = '0.3.1';
+const VERSION = '0.4.0';
 const ISSUE_META_KEY = '_omni_platform_newsletter_layout';
 
 /** Return post types supported by the current authoring adapter. */
@@ -78,11 +78,13 @@ function renderIssue(\WP_Post $post): string
     $footer = render_block($sections['footer']);
     $front = render_block($sections['front']);
     $back = render_block($sections['back']);
+    $colors = issueColors($post);
+    $style = fn(string $side) => ' style="' . esc_attr(colorVars($colors[$side])) . '"';
 
-    // Print: two Letter sheets, each with the shared sidebar and footer.
+    // Print: two Letter sheets, each with the shared sidebar and footer, in that page's colours.
     $print = '<div class="opn-print">';
     foreach (['front' => $front, 'back' => $back] as $side => $main) {
-        $print .= '<section class="opn-sheet opn-sheet--' . $side . '" aria-label="Newsletter ' . $side . '">'
+        $print .= '<section class="opn-sheet opn-sheet--' . $side . '"' . $style($side) . ' aria-label="Newsletter ' . $side . '">'
             . '<aside class="opn-sidebar">' . $sidebar . '</aside>'
             . '<div class="opn-main">' . $main . '</div>'
             . '<footer class="opn-sheet-footer">' . $footer . '</footer></section>';
@@ -97,8 +99,9 @@ function renderIssue(\WP_Post $post): string
     // as one continuous page with the sidebar once and no newsletter footer.
     // Printing switches to the sheets.
     $web = '<article class="opn-web">'
-        . '<div class="opn-main">' . $front . $back . '</div>'
-        . '<aside class="opn-sidebar"><div class="opn-sidebar__inner">' . $sidebar . '</div></aside></article>';
+        . '<div class="opn-main"><div class="opn-page opn-page--front"' . $style('front') . '>' . $front . '</div>'
+        . '<div class="opn-page opn-page--back"' . $style('back') . '>' . $back . '</div></div>'
+        . '<aside class="opn-sidebar"' . $style('front') . '><div class="opn-sidebar__inner">' . $sidebar . '</div></aside></article>';
 
     return '<div class="opn-issue alignwide">' . breadcrumb($post) . $web . $print . '</div>';
 }
@@ -231,48 +234,76 @@ function filterNewsletterContent(string $content, $post): string
         return '';
     }
 
-    return serialize_blocks(emailBlocks($sections));
+    return serialize_blocks(emailBlocks($sections, $post));
 }
 
-/** @return array<string, array{background: string, text: string}> Email colors per region (print uses layout.css). */
-function emailColors(): array
+/**
+ * Email colours per region for one printed page (print and web use the same issueColors()).
+ *
+ * @return array<string, array{background: string, text: string, heading: string}>
+ */
+function emailColors(?\WP_Post $post = null, string $side = 'front'): array
 {
-    $p = palette();
-    // Accent headings only where they stay readable on the colored panel.
-    $onDark = contrast($p['accent'], $p['dark']) >= 3 ? $p['accent'] : $p['on_dark'];
-    $onPrimary = contrast($p['accent'], $p['primary']) >= 3 ? $p['accent'] : $p['on_primary'];
+    $c = issueColors($post)[$side] ?? issueColors($post)['front'];
+    $page = ['background' => $c['page'], 'text' => $c['pageText'], 'heading' => $c['heading'], 'title' => $c['title']];
 
     return (array) apply_filters('omni_platform_newsletter_email_colors', [
-        'front' => ['background' => $p['background'], 'text' => $p['text'], 'heading' => $p['primary']],
-        'back' => ['background' => $p['background'], 'text' => $p['text'], 'heading' => $p['primary']],
-        'callout' => ['background' => $p['dark'], 'text' => $p['on_dark'], 'heading' => $onDark],
-        'sidebar' => ['background' => $p['primary'], 'text' => $p['on_primary'], 'heading' => $onPrimary],
-        'footer' => ['background' => $p['text'], 'text' => $p['on_text'], 'heading' => $p['on_text']],
-        'label' => ['background' => $p['accent'], 'text' => $p['on_accent'], 'heading' => $p['on_accent']],
-    ]);
+        'front' => $page,
+        'back' => $page,
+        'callout' => ['background' => $c['callout'], 'text' => $c['calloutText'], 'heading' => $c['calloutHeading']],
+        'sidebar' => ['background' => $c['sidebar'], 'text' => $c['sidebarText'], 'heading' => $c['sidebarHeading']],
+        'card' => ['background' => $c['card'], 'text' => $c['cardText'], 'heading' => $c['cardHeading']],
+        'motto' => ['background' => $c['motto'], 'text' => $c['mottoText'], 'heading' => $c['mottoText']],
+        'footer' => ['background' => $c['footer'], 'text' => $c['footerText'], 'heading' => $c['footerText']],
+        'label' => ['background' => $c['label'], 'text' => $c['labelText'], 'heading' => $c['labelText']],
+    ], $side, $post);
 }
 
-/** Give headings and the issue date the same accents as the printed letter. */
-function styleEmailBlock(array $block, string $region): array
+/** Whether the author gave this block its own text colour in the editor. */
+function hasOwnTextColor(array $block): bool
 {
-    $colors = emailColors();
+    return !empty($block['attrs']['textColor']) || !empty($block['attrs']['style']['color']['text']);
+}
+
+/** Give headings, the title and the issue date the same colours as the printed letter. */
+function styleEmailBlock(array $block, string $region, array $colors): array
+{
     $classes = preg_split('/\s+/', (string) ($block['attrs']['className'] ?? ''));
-    if ($block['blockName'] === 'core/heading' || in_array('opn-kicker', $classes, true)) {
-        $block['attrs']['style']['color']['text'] = $colors[$region]['heading'] ?? $colors['front']['heading'];
+    $regionColors = $colors[$region] ?? $colors['front'];
+    $own = hasOwnTextColor($block);
+    if (in_array('opn-title', $classes, true) && !$own) {
+        $block['attrs']['style']['color']['text'] = $regionColors['title'] ?? $regionColors['heading'];
+    } elseif (($block['blockName'] === 'core/heading' || in_array('opn-kicker', $classes, true)) && !$own) {
+        $block['attrs']['style']['color']['text'] = $regionColors['heading'];
     }
-    if ($block['blockName'] === 'core/paragraph' && in_array('opn-issue-label', $classes, true)) {
-        $block['attrs']['style']['color'] = ['background' => $colors['label']['background'], 'text' => $colors['label']['text']];
+    if ($block['blockName'] === 'core/paragraph' && array_intersect(['opn-issue-label', 'is-style-opn-label', 'is-style-opn-tag'], $classes)) {
+        // Colours the author picked for this label win over the scheme's label colours.
+        $block['attrs']['style']['color'] = array_filter((array) ($block['attrs']['style']['color'] ?? []))
+            + array_filter([
+                'background' => empty($block['attrs']['backgroundColor']) ? $colors['label']['background'] : '',
+                'text' => $own ? '' : $colors['label']['text'],
+            ]);
         $block['attrs']['align'] = 'right';
+    }
+    if ($block['blockName'] === 'core/paragraph' && in_array('opn-motto', $classes, true) && empty($block['attrs']['style']['color']['background'])) {
+        $block['attrs']['style']['color']['background'] = $colors['motto']['background'];
+        if (!$own) {
+            $block['attrs']['style']['color']['text'] = $colors['motto']['text'];
+        }
+    }
+    // Headings inside columns and other containers need the region's colours too.
+    if (!empty($block['innerBlocks'])) {
+        $block['innerBlocks'] = array_map(fn($inner) => styleEmailBlock($inner, $region, $colors), $block['innerBlocks']);
     }
 
     return $block;
 }
 
 /** A top-level group block for the email, carrying a region's colors. */
-function emailGroup(array $innerBlocks, string $region, string $className): array
+function emailGroup(array $innerBlocks, string $region, string $className, array $colors): array
 {
-    $colors = emailColors()[$region] ?? emailColors()['front'];
-    $innerBlocks = array_map(fn($block) => styleEmailBlock($block, $region), $innerBlocks);
+    $innerBlocks = array_map(fn($block) => styleEmailBlock($block, $region, $colors), $innerBlocks);
+    $colors = $colors[$region] ?? $colors['front'];
 
     return [
         'blockName' => 'core/group',
@@ -307,13 +338,15 @@ function flattenGroups(array $blocks): array
  * Email layout cannot nest sections inside sections, so each story or callout
  * group inside a page becomes its own top-level email section, in order.
  */
-function emailBlocks(array $sections): array
+function emailBlocks(array $sections, ?\WP_Post $post = null): array
 {
     $out = [];
     foreach (['front', 'back', 'sidebar', 'footer'] as $role) {
         $section = $sections[$role];
+        // The sidebar and footer appear once in the email, in the front page's colours.
+        $colors = emailColors($post, $role === 'back' ? 'back' : 'front');
         if ($section['blockName'] !== 'core/group') {
-            $out[] = emailGroup([$section], $role, 'opn-email-' . $role);
+            $out[] = emailGroup([$section], $role, 'opn-email-' . $role, $colors);
             continue;
         }
 
@@ -327,15 +360,15 @@ function emailBlocks(array $sections): array
                 continue;
             }
             if ($loose) {
-                $out[] = emailGroup($loose, $role, 'opn-email-' . $role);
+                $out[] = emailGroup($loose, $role, 'opn-email-' . $role, $colors);
                 $loose = [];
             }
-            $isCallout = str_contains((string) ($child['attrs']['className'] ?? ''), 'opn-callout');
-            $region = $isCallout ? 'callout' : $role;
-            $out[] = emailGroup(flattenGroups($child['innerBlocks']), $region, 'opn-email-' . $region . ' ' . ($child['attrs']['className'] ?? ''));
+            $childClass = (string) ($child['attrs']['className'] ?? '');
+            $region = str_contains($childClass, 'opn-callout') ? 'callout' : (str_contains($childClass, 'opn-contact-card') ? 'card' : $role);
+            $out[] = emailGroup(flattenGroups($child['innerBlocks']), $region, 'opn-email-' . $region . ' ' . $childClass, $colors);
         }
         if ($loose) {
-            $out[] = emailGroup($loose, $role, 'opn-email-' . $role);
+            $out[] = emailGroup($loose, $role, 'opn-email-' . $role, $colors);
         }
     }
 
@@ -535,6 +568,7 @@ add_action('admin_init', __NAMESPACE__ . '\\registerStarterPattern');
 add_action('rest_api_init', __NAMESPACE__ . '\\registerStarterPattern');
 
 require_once __DIR__ . '/includes/palette.php';
+require_once __DIR__ . '/includes/colors.php';
 require_once __DIR__ . '/includes/capabilities.php';
 require_once __DIR__ . '/includes/delivery.php';
 require_once __DIR__ . '/includes/social.php';
