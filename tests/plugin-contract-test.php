@@ -219,7 +219,7 @@ foreach (['Example Mission', 'Serving our town', 'Jane Doe', 'mailto:jane@exampl
 $details = ['issue_date' => 'December 2026', 'volume' => '05', 'issue_number' => '12'];
 $line = '<p>Volume <span class="opn-detail" data-opn-detail="volume">04</span>, Issue #<span data-opn-detail="issue_number" class="opn-detail">11</span> · Page <span class="opn-detail" data-opn-detail="page">1</span></p>';
 assertTrue(
-    OmniPlatform\Newsletter\fillDetails($line, $details, '2') === '<p>Volume <span class="opn-detail">05</span>, Issue #<span class="opn-detail">12</span> · Page <span class="opn-detail">2</span></p>',
+    OmniPlatform\Newsletter\fillDetails($line, $details, '2') === '<p>Volume 05, Issue #12 · Page 2</p>',
     'issue details and page number are filled in whatever the attribute order'
 );
 assertTrue(OmniPlatform\Newsletter\fillDetails('<p>No details</p>', $details) === '<p>No details</p>', 'text without details is unchanged');

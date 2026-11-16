@@ -89,9 +89,20 @@
 .opn-masthead .opn-contact-card p { margin: 0 0 .15em; }
 .opn-masthead .opn-contact-card .wp-block-columns { gap: .6em; }
 .opn-masthead .opn-masthead-bar { margin-top: .7em; }
+.opn-web .is-style-opn-stamp { margin-block: 26px 18px !important; }
 .opn-web.opn-web--top { grid-template-columns: minmax(0, 1fr); gap: 20px; }
 .opn-web.opn-web--top .opn-sidebar { position: static; }
 .opn-web.opn-web--top .opn-sidebar__inner { padding: 22px 28px; }
+
+/* A masthead design used with the sidebar layout: its columns stack instead of squeezing side by side.
+   Other sidebar columns (a QR code beside its caption) keep their layout. */
+.opn-sidebar:not(.opn-masthead) .wp-block-columns:is(:has(.is-style-opn-nameplate, .opn-contact-card), .opn-masthead-bar .wp-block-columns) { flex-direction: column !important; gap: 10px; }
+.opn-sidebar:not(.opn-masthead) .wp-block-columns:is(:has(.is-style-opn-nameplate, .opn-contact-card), .opn-masthead-bar .wp-block-columns) > .wp-block-column { flex-basis: auto !important; width: 100%; }
+.opn-sidebar:not(.opn-masthead) .is-style-opn-nameplate { font-size: 1.6em; }
+.is-style-opn-nameplate { overflow-wrap: normal; word-break: normal; hyphens: manual; }
+.opn-sidebar:not(.opn-masthead) .opn-masthead-bar { border-radius: 14px; margin-top: 12px; }
+.opn-sidebar:not(.opn-masthead) .opn-masthead-bar p { text-align: left !important; }
+.opn-sidebar:not(.opn-masthead) .opn-contact-card p { text-align: left !important; }
 
 /* Page border: the frame colour around each page, with rounded paper inside. */
 .opn-sheet--framed { padding: 14px; row-gap: 10px; background: var(--opn-frame); }
@@ -208,6 +219,11 @@
 .opn-print-mode .opn-main p.has-text-align-right:has(+ .opn-kicker) { padding-top: 0.08in; font-size: 13pt; }
 .opn-print-mode .opn-main .opn-kicker { padding: 0.08in 0.14in 0; font-size: 13pt; margin-bottom: 0.02in; }
 .opn-print-mode .opn-main .opn-title { padding: 0 0.14in; font-size: 35pt; margin-bottom: 0.04in; }
+/* Printed text is Arial (Liberation Sans and Arimo have identical metrics), not the theme's
+   system-font stack, which every browser and computer resolves differently: the page fits the
+   same wherever it is printed. Block styles with their own fonts keep them. */
+.opn-print-mode .opn-issue .opn-sheet, .opn-print-mode .opn-sheet :where(p, li, ul, ol, figcaption, blockquote, a, strong, em) { font-family: Arial, "Liberation Sans", Arimo, Helvetica, sans-serif; }
+
 /* Printed text size, chosen per issue in the Layout panel (never changed automatically). */
 .opn-print-mode .opn-sheet { --opn-print-body: 11.4pt; }
 .opn-print-mode .opn-sheet.opn-text--compact { --opn-print-body: 10.4pt; }

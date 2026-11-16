@@ -76,6 +76,9 @@ Filters: `omni_platform_newsletter_palette`, `omni_platform_newsletter_starter_p
 * Printed text size (Regular, Compact, Small) for issues with a lot to say; the print preview suggests it when a page is too long.
 * Email: sized photos keep a matching width, rounded boxes keep their tint, empty bullets are dropped.
 * Editor: wrapped photos float in the canvas as they print, and empty columns show a visible area to click.
+* Print text uses Arial (or the metric-identical Liberation Sans/Arimo) instead of the theme's system-font stack, so a page that fits in one browser fits in Chrome, Firefox and Safari alike (previously some issues overflowed only in Firefox).
+* A masthead design switched to the sidebar layout stacks neatly instead of squeezing its columns side by side.
+* Issue details are filled in as plain text, so text-only email reads "Volume 05, Issue #11" without stray spaces; contact cards inside columns keep their colours in email.
 
 = 0.4.0 =
 * Colours panel in the editor: pick a colour scheme for each newsletter, give the front and back pages different colours, and fine-tune the page, title, labels, highlight boxes, sidebar, motto, contact box and footer. The editor shows the colours as you choose them; web, print and email use them too. Schemes can be changed with `omni_platform_newsletter_color_schemes`; resolved colours with `omni_platform_newsletter_issue_colors`.

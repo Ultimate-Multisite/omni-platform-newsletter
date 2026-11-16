@@ -118,7 +118,8 @@ function fillDetails(string $html, array $details, string $page = ''): string
 
     return (string) preg_replace_callback(detailPattern(), function ($m) use ($details, $page) {
         $value = $m[1] === 'page' ? $page : (string) ($details[$m[1]] ?? '');
-        return '<span class="opn-detail">' . esc_html($value) . '</span>';
+        // Plain text: a wrapper element makes text-only email read "Volume 05 , Issue # 11".
+        return esc_html($value);
     }, $html);
 }
 

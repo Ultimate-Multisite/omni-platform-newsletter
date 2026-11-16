@@ -312,13 +312,14 @@ function styleEmailBlock(array $block, string $region, array $colors): array
             $block['attrs']['style']['color']['text'] = $colors['motto']['text'];
         }
     }
-    if ($block['blockName'] === 'core/group' && in_array('is-style-opn-box', $classes, true) && isset($colors['box'])) {
-        // Rounded boxes inside columns keep their tint (top-level boxes become their own sections).
+    // Boxes and contact cards inside columns keep their colours (top-level ones become their own sections).
+    $nested = in_array('is-style-opn-box', $classes, true) ? 'box' : (in_array('opn-contact-card', $classes, true) ? 'card' : '');
+    if ($block['blockName'] === 'core/group' && $nested !== '' && isset($colors[$nested])) {
         $block['attrs']['style']['color'] = array_filter((array) ($block['attrs']['style']['color'] ?? [])) + [
-            'background' => $colors['box']['background'],
-            'text' => $colors['box']['text'],
+            'background' => $colors[$nested]['background'],
+            'text' => $colors[$nested]['text'],
         ];
-        $region = 'box';
+        $region = $nested;
     }
     if ($block['blockName'] === 'core/image') {
         // Email cannot wrap text around photos: sized photos keep a matching width (of a 600px email).
