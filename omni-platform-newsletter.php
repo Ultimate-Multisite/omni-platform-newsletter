@@ -4,7 +4,7 @@
  * Plugin Name: Omni Platform Newsletter
  * Plugin URI: https://github.com/Ultimate-Multisite/omni-platform-newsletter
  * Description: Write one block newsletter and publish it to your website, email it to subscribers, and print it as a two-page letter.
- * Version: 0.4.0
+ * Version: 0.5.0
  * Requires at least: 6.9
  * Requires PHP: 8.2
  * Requires Plugins: newspack-newsletters, newsletter
@@ -19,7 +19,7 @@ namespace OmniPlatform\Newsletter;
 
 defined('ABSPATH') || exit;
 
-const VERSION = '0.4.0';
+const VERSION = '0.5.0';
 const ISSUE_META_KEY = '_omni_platform_newsletter_layout';
 
 /** Return post types supported by the current authoring adapter. */
@@ -80,14 +80,25 @@ function renderIssue(\WP_Post $post): string
     $back = render_block($sections['back']);
     $colors = issueColors($post);
     $style = fn(string $side) => ' style="' . esc_attr(colorVars($colors[$side])) . '"';
+    // A page border only when its colour differs from the page itself.
+    $framed = fn(string $side) => ($colors[$side]['frame'] ?? '') !== ($colors[$side]['page'] ?? '');
+    $details = issueDetails($post);
+    $top = sharedArea($post) === 'top';
+    // A masthead runs across the top of each page; a sidebar sits beside it.
+    $shared = fn(string $html, string $attrs = '') => $top
+        ? '<header class="opn-sidebar opn-masthead"' . $attrs . '>' . $html . '</header>'
+        : '<aside class="opn-sidebar"' . $attrs . '>' . $html . '</aside>';
 
-    // Print: two Letter sheets, each with the shared sidebar and footer, in that page's colours.
+    // Print: two Letter sheets, each with the shared section and footer, in that page's colours.
     $print = '<div class="opn-print">';
     foreach (['front' => $front, 'back' => $back] as $side => $main) {
-        $print .= '<section class="opn-sheet opn-sheet--' . $side . '"' . $style($side) . ' aria-label="Newsletter ' . $side . '">'
-            . '<aside class="opn-sidebar">' . $sidebar . '</aside>'
-            . '<div class="opn-main">' . $main . '</div>'
-            . '<footer class="opn-sheet-footer">' . $footer . '</footer></section>';
+        $page = $side === 'front' ? '1' : '2';
+        $classes = 'opn-sheet opn-sheet--' . $side . ($top ? ' opn-sheet--top' : '') . ($framed($side) ? ' opn-sheet--framed' : '')
+            . (printTextSize($post) !== '' ? ' opn-text--' . printTextSize($post) : '');
+        $print .= '<section class="' . $classes . '"' . $style($side) . ' aria-label="Newsletter ' . $side . '">'
+            . $shared(fillDetails($sidebar, $details, $page))
+            . '<div class="opn-main">' . fillDetails($main, $details, $page) . '</div>'
+            . '<footer class="opn-sheet-footer">' . fillDetails($footer, $details, $page) . '</footer></section>';
     }
     $print .= '</div>';
 
@@ -96,12 +107,13 @@ function renderIssue(\WP_Post $post): string
     }
 
     // Website: shown inside the site's own post template (site header and footer),
-    // as one continuous page with the sidebar once and no newsletter footer.
+    // as one continuous page with the shared section once and no newsletter footer.
     // Printing switches to the sheets.
-    $web = '<article class="opn-web">'
-        . '<div class="opn-main"><div class="opn-page opn-page--front"' . $style('front') . '>' . $front . '</div>'
-        . '<div class="opn-page opn-page--back"' . $style('back') . '>' . $back . '</div></div>'
-        . '<aside class="opn-sidebar"' . $style('front') . '><div class="opn-sidebar__inner">' . $sidebar . '</div></aside></article>';
+    $pageDiv = fn(string $side, string $html) => '<div class="opn-page opn-page--' . $side . ($framed($side) ? ' opn-page--framed' : '') . '"' . $style($side) . '>'
+        . fillDetails($html, $details) . '</div>';
+    $sharedWeb = $shared('<div class="opn-sidebar__inner">' . fillDetails($sidebar, $details) . '</div>', $style('front'));
+    $main = '<div class="opn-main">' . $pageDiv('front', $front) . $pageDiv('back', $back) . '</div>';
+    $web = '<article class="opn-web' . ($top ? ' opn-web--top' : '') . '">' . ($top ? $sharedWeb . $main : $main . $sharedWeb) . '</article>';
 
     return '<div class="opn-issue alignwide">' . breadcrumb($post) . $web . $print . '</div>';
 }
@@ -187,15 +199,16 @@ add_action('wp_enqueue_scripts', function () {
         return;
     }
 
-    wp_enqueue_style('omni-platform-newsletter', plugins_url('layout.css', __FILE__), [], VERSION);
+    wp_register_style('omni-platform-newsletter-blocks', plugins_url('assets/blocks.css', __FILE__), [], VERSION);
+    wp_enqueue_style('omni-platform-newsletter', plugins_url('layout.css', __FILE__), ['omni-platform-newsletter-blocks'], VERSION);
     wp_add_inline_style('omni-platform-newsletter', paletteCss());
     wp_enqueue_script('omni-platform-newsletter-overflow', plugins_url('overflow.js', __FILE__), [], VERSION, true);
     wp_localize_script('omni-platform-newsletter-overflow', 'omniNewsletterPrint', [
         'fits' => __('Fits on two pages. Ready to print.', 'omni-platform-newsletter'),
         /* translators: %s: comma-separated page numbers */
-        'tooLong' => __('Too long to fit on page %s. Shorten the text or use smaller photos, then refresh this page.', 'omni-platform-newsletter'),
+        'tooLong' => __('Too long to fit on page %s. Shorten the text, use smaller photos, or choose a smaller “Printed text size” in the editor, then refresh this page.', 'omni-platform-newsletter'),
         /* translators: %d: page number */
-        'sheetWarning' => __('Page %d is too long to fit. Nothing has been hidden: shorten the text or use smaller photos before printing.', 'omni-platform-newsletter'),
+        'sheetWarning' => __('Page %d is too long to fit. Nothing has been hidden: shorten the text, use smaller photos, or choose a smaller printed text size before printing.', 'omni-platform-newsletter'),
     ]);
 }, 1100);
 
@@ -234,6 +247,12 @@ function filterNewsletterContent(string $content, $post): string
         return '';
     }
 
+    // Issue details filled in; text showing the page number is for paper only.
+    $details = issueDetails($post);
+    foreach ($sections as $role => $section) {
+        $sections[$role] = emailDetailBlock($section, $details) ?? ['blockName' => 'core/group', 'attrs' => [], 'innerBlocks' => [], 'innerHTML' => '', 'innerContent' => []];
+    }
+
     return serialize_blocks(emailBlocks($sections, $post));
 }
 
@@ -256,6 +275,8 @@ function emailColors(?\WP_Post $post = null, string $side = 'front'): array
         'motto' => ['background' => $c['motto'], 'text' => $c['mottoText'], 'heading' => $c['mottoText']],
         'footer' => ['background' => $c['footer'], 'text' => $c['footerText'], 'heading' => $c['footerText']],
         'label' => ['background' => $c['label'], 'text' => $c['labelText'], 'heading' => $c['labelText']],
+        // "Rounded box" groups: a light tint of the tag colour, as on the printed page.
+        'box' => ['background' => mixColors($c['label'], $c['page'], 0.16), 'text' => $c['pageText'], 'heading' => $c['heading']],
     ], $side, $post);
 }
 
@@ -289,6 +310,26 @@ function styleEmailBlock(array $block, string $region, array $colors): array
         $block['attrs']['style']['color']['background'] = $colors['motto']['background'];
         if (!$own) {
             $block['attrs']['style']['color']['text'] = $colors['motto']['text'];
+        }
+    }
+    if ($block['blockName'] === 'core/group' && in_array('is-style-opn-box', $classes, true) && isset($colors['box'])) {
+        // Rounded boxes inside columns keep their tint (top-level boxes become their own sections).
+        $block['attrs']['style']['color'] = array_filter((array) ($block['attrs']['style']['color'] ?? [])) + [
+            'background' => $colors['box']['background'],
+            'text' => $colors['box']['text'],
+        ];
+        $region = 'box';
+    }
+    if ($block['blockName'] === 'core/image') {
+        // Email cannot wrap text around photos: sized photos keep a matching width (of a 600px email).
+        foreach (['opn-photo-small' => 160, 'opn-photo-medium' => 240, 'opn-photo-large' => 320] as $class => $width) {
+            if (in_array($class, $classes, true)) {
+                $block['attrs']['width'] = $width;
+            }
+        }
+        // The email renderer appends "px" itself; "84px" would become "84pxpx".
+        if (isset($block['attrs']['width']) && is_string($block['attrs']['width']) && preg_match('/^(\d+(?:\.\d+)?)px$/', $block['attrs']['width'], $m)) {
+            $block['attrs']['width'] = (int) round((float) $m[1]);
         }
     }
     // Headings inside columns and other containers need the region's colours too.
@@ -341,7 +382,9 @@ function flattenGroups(array $blocks): array
 function emailBlocks(array $sections, ?\WP_Post $post = null): array
 {
     $out = [];
-    foreach (['front', 'back', 'sidebar', 'footer'] as $role) {
+    // A masthead opens the email; a sidebar's contact details follow the stories.
+    $order = sharedArea($post) === 'top' ? ['sidebar', 'front', 'back', 'footer'] : ['front', 'back', 'sidebar', 'footer'];
+    foreach ($order as $role) {
         $section = $sections[$role];
         // The sidebar and footer appear once in the email, in the front page's colours.
         $colors = emailColors($post, $role === 'back' ? 'back' : 'front');
@@ -364,8 +407,21 @@ function emailBlocks(array $sections, ?\WP_Post $post = null): array
                 $loose = [];
             }
             $childClass = (string) ($child['attrs']['className'] ?? '');
-            $region = str_contains($childClass, 'opn-callout') ? 'callout' : (str_contains($childClass, 'opn-contact-card') ? 'card' : $role);
-            $out[] = emailGroup(flattenGroups($child['innerBlocks']), $region, 'opn-email-' . $region . ' ' . $childClass, $colors);
+            $region = match (true) {
+                str_contains($childClass, 'opn-callout') => 'callout',
+                str_contains($childClass, 'opn-contact-card') => 'card',
+                str_contains($childClass, 'opn-masthead-bar') => 'label',
+                str_contains($childClass, 'is-style-opn-box') => 'box',
+                default => $role,
+            };
+            $groupColors = $colors;
+            // A background the author picked for this box is kept.
+            $own = normalizeHex($child['attrs']['style']['color']['background'] ?? '');
+            if ($own !== '' && isset($groupColors[$region])) {
+                $groupColors[$region]['background'] = $own;
+                $groupColors[$region]['text'] = normalizeHex($child['attrs']['style']['color']['text'] ?? '') ?: readableOn($own, palette()['text']);
+            }
+            $out[] = emailGroup(flattenGroups($child['innerBlocks']), $region, 'opn-email-' . $region . ' ' . $childClass, $groupColors);
         }
         if ($loose) {
             $out[] = emailGroup($loose, $role, 'opn-email-' . $role, $colors);
@@ -462,7 +518,8 @@ function starterParts(): array
             ? sprintf(esc_html__('Your gifts make this work possible. Give online at %s.', 'omni-platform-newsletter'), $link($give, untrailingslashit((string) preg_replace('#^https?://(www\.)?#', '', $give))))
             /* translators: %s: email or website link */
             : sprintf(esc_html__('Your gifts make this work possible. Contact us at %s to give.', 'omni-platform-newsletter'), $contact),
-        'label' => esc_html(wp_date('F Y')),
+        // The issue month as an issue detail, so copies of this issue show their own month.
+        'label' => '<span class="opn-detail" data-opn-detail="issue_date">' . esc_html(wp_date('F Y')) . '</span>',
         'kicker' => esc_html($siteName),
         'title' => esc_html__('Write this issue’s headline', 'omni-platform-newsletter'),
         'lead_heading' => esc_html__('Your main story', 'omni-platform-newsletter'),
@@ -503,7 +560,7 @@ function inlineHtml(string $html): string
         'a' => ['href' => true, 'target' => true, 'rel' => true] + $attrs,
         'br' => [],
         'strong' => $attrs, 'b' => $attrs, 'em' => $attrs, 'i' => $attrs,
-        'span' => $attrs, 'mark' => $attrs, 'code' => $attrs, 'sub' => [], 'sup' => [],
+        'span' => $attrs + ['data-opn-detail' => true], 'mark' => $attrs, 'code' => $attrs, 'sub' => [], 'sup' => [],
     ]);
 }
 
@@ -569,7 +626,9 @@ add_action('rest_api_init', __NAMESPACE__ . '\\registerStarterPattern');
 
 require_once __DIR__ . '/includes/palette.php';
 require_once __DIR__ . '/includes/colors.php';
+require_once __DIR__ . '/includes/details.php';
 require_once __DIR__ . '/includes/capabilities.php';
+require_once __DIR__ . '/includes/qr.php';
 require_once __DIR__ . '/includes/delivery.php';
 require_once __DIR__ . '/includes/social.php';
 require_once __DIR__ . '/includes/rest.php';

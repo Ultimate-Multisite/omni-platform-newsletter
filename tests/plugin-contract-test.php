@@ -215,4 +215,23 @@ foreach (['Example Mission', 'Serving our town', 'Jane Doe', 'mailto:jane@exampl
     assertTrue(str_contains($pattern, $detail), 'starter pattern is pre-filled with ' . $detail);
 }
 
+// Issue details: filled in on paper and on the web; the page number only on paper.
+$details = ['issue_date' => 'December 2026', 'volume' => '05', 'issue_number' => '12'];
+$line = '<p>Volume <span class="opn-detail" data-opn-detail="volume">04</span>, Issue #<span data-opn-detail="issue_number" class="opn-detail">11</span> · Page <span class="opn-detail" data-opn-detail="page">1</span></p>';
+assertTrue(
+    OmniPlatform\Newsletter\fillDetails($line, $details, '2') === '<p>Volume <span class="opn-detail">05</span>, Issue #<span class="opn-detail">12</span> · Page <span class="opn-detail">2</span></p>',
+    'issue details and page number are filled in whatever the attribute order'
+);
+assertTrue(OmniPlatform\Newsletter\fillDetails('<p>No details</p>', $details) === '<p>No details</p>', 'text without details is unchanged');
+assertTrue(
+    OmniPlatform\Newsletter\emailDetailBlock(['blockName' => 'core/paragraph', 'attrs' => [], 'innerBlocks' => [], 'innerHTML' => $line, 'innerContent' => [$line]], $details) === null,
+    'text showing the page number is left out of the email'
+);
+foreach (['11' => '12', '05' => '06', '09' => '10', 'Issue 9' => 'Issue 10', 'Spring' => 'Spring'] as $from => $to) {
+    assertTrue(OmniPlatform\Newsletter\nextNumber((string) $from) === $to, 'next issue number after ' . $from);
+}
+$qr = OmniPlatform\Newsletter\qrMatrix('https://example.org/register');
+assertTrue(is_array($qr) && (count($qr) - 17) % 4 === 0 && $qr[0][0] && $qr[0][6] && !$qr[0][7], 'QR code is a square symbol with a finder pattern in the corner');
+assertTrue(OmniPlatform\Newsletter\qrMatrix(str_repeat('x', 300)) === null, 'addresses too long for a QR code are refused');
+
 echo 'PASS: Omni Platform Newsletter content contract' . PHP_EOL;

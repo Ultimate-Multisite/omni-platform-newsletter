@@ -79,6 +79,37 @@
 .opn-sheet-footer p { margin: 0; }
 .opn-layout-warning { padding: 16px; background: #fff3cd; color: #342800; font: 16px/1.5 Arial, sans-serif; border: 2px solid #9c6b00; }
 
+/* Masthead layout: the shared section runs across the top of each page instead of beside it. */
+.opn-sheet { box-sizing: border-box; }
+.opn-sheet--top { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr auto; }
+.opn-masthead { padding: 18px 22px 14px; }
+.opn-sidebar.opn-masthead :is(h1, h2, h3) { margin-top: 0; }
+.opn-masthead .wp-block-columns { align-items: center; }
+.opn-sidebar.opn-masthead .opn-contact-card { margin: 0; padding: .6em .9em; border-radius: 12px; font-size: .88em; line-height: 1.35; }
+.opn-masthead .opn-contact-card p { margin: 0 0 .15em; }
+.opn-masthead .opn-contact-card .wp-block-columns { gap: .6em; }
+.opn-masthead .opn-masthead-bar { margin-top: .7em; }
+.opn-web.opn-web--top { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+.opn-web.opn-web--top .opn-sidebar { position: static; }
+.opn-web.opn-web--top .opn-sidebar__inner { padding: 22px 28px; }
+
+/* Page border: the frame colour around each page, with rounded paper inside. */
+.opn-sheet--framed { padding: 14px; row-gap: 10px; background: var(--opn-frame); }
+.opn-sheet--framed .opn-main { border-radius: 18px; }
+.opn-sheet--framed .opn-sheet-footer { border-radius: 10px; }
+.opn-web .opn-page--framed { border: 12px solid var(--opn-frame); }
+.opn-web .opn-page--framed + .opn-page--framed { border-top-width: 0; }
+
+/* Photos aligned left or right: the text wraps around them. */
+:is(.opn-sheet, .opn-web) .wp-block-image:is(.alignleft, .alignright) { max-width: 45%; }
+:is(.opn-sheet, .opn-web) .alignleft { float: left; margin: .25em 1.1em .5em 0 !important; }
+:is(.opn-sheet, .opn-web) .alignright { float: right; margin: .25em 0 .5em 1.1em !important; }
+:is(.opn-sheet, .opn-web) :is(.alignleft, .alignright) img { width: auto; }
+.opn-main :where(.opn-source-front, .opn-source-back, .wp-block-group.is-layout-flow, .wp-block-group.is-layout-constrained) { display: flow-root; }
+/* Text placed directly on a page clears a photo that ends before the next box. */
+.opn-main :where(.wp-block-group.is-style-opn-box, .wp-block-columns) { clear: both; }
+:is(.opn-sheet, .opn-web) .wp-block-group.is-style-opn-box + .wp-block-group.is-style-opn-box { margin-top: 14px; }
+
 /* Website view inside the theme's post template: the issue reads like an article,
    using the theme's fonts, with the shared sidebar as a sticky card beside it. */
 .opn-newsletter-single .opn-issue { max-width: var(--wp--style--global--wide-size, 1180px); margin: 0 auto; font-family: inherit; }
@@ -129,6 +160,13 @@
     body:not(.opn-print-mode) .opn-web { gap: 20px; }
     body.opn-newsletter-single:not(.opn-print-mode) .opn-issue { margin: 0; }
     body:not(.opn-print-mode) .opn-web .opn-sidebar { position: static; padding: 0; }
+    body:not(.opn-print-mode) .opn-masthead { order: 0; }
+    body:not(.opn-print-mode) .opn-masthead .is-style-opn-nameplate { font-size: 2.2em; }
+    body:not(.opn-print-mode) .opn-masthead-bar { border-radius: 16px; }
+    body:not(.opn-print-mode) .opn-masthead-bar .wp-block-columns { gap: 2px; }
+    body:not(.opn-print-mode) .opn-masthead-bar p { text-align: center !important; }
+    /* On a phone, large wrapped photos go full width; small and medium ones keep the text beside them. */
+    body:not(.opn-print-mode) :is(.opn-sheet, .opn-web) :is(.alignleft, .alignright):is(.opn-photo-large, :not(.opn-photo-small, .opn-photo-medium)) { float: none; width: auto !important; max-width: 100% !important; margin: 0 0 12px !important; }
     body:not(.opn-print-mode) .opn-web :is(.opn-issue-label, .opn-kicker, .opn-title, .opn-story, .opn-callout) { padding-left: 20px; padding-right: 20px; }
 }
 
@@ -170,17 +208,46 @@
 .opn-print-mode .opn-main p.has-text-align-right:has(+ .opn-kicker) { padding-top: 0.08in; font-size: 13pt; }
 .opn-print-mode .opn-main .opn-kicker { padding: 0.08in 0.14in 0; font-size: 13pt; margin-bottom: 0.02in; }
 .opn-print-mode .opn-main .opn-title { padding: 0 0.14in; font-size: 35pt; margin-bottom: 0.04in; }
-.opn-print-mode .opn-main .opn-story { padding: 0.08in 0.16in 0.12in; font-size: 11.4pt; }
+/* Printed text size, chosen per issue in the Layout panel (never changed automatically). */
+.opn-print-mode .opn-sheet { --opn-print-body: 11.4pt; }
+.opn-print-mode .opn-sheet.opn-text--compact { --opn-print-body: 10.4pt; }
+.opn-print-mode .opn-sheet.opn-text--small { --opn-print-body: 9.6pt; }
+.opn-print-mode .opn-sheet .opn-main { font-size: var(--opn-print-body); }
+.opn-print-mode .opn-main .opn-story { padding: 0.08in 0.16in 0.12in; font-size: var(--opn-print-body); }
+.opn-print-mode .opn-sheet:is(.opn-text--compact, .opn-text--small) :where(.opn-main) p { margin-bottom: 0.05in; line-height: 1.28; }
 .opn-print-mode .opn-main .opn-story :is(h2, h3) { font-size: 17pt; }
 .opn-print-mode .opn-main .opn-story img { max-height: 1.65in; object-fit: cover; }
 .opn-print-mode .opn-sheet--front .opn-story .wp-block-column:first-child img { max-height: 1.15in; }
 .opn-print-mode .opn-main .opn-story .wp-block-image { margin-bottom: 0.08in; }
-.opn-print-mode .opn-issue .opn-main .opn-callout { padding: 0.13in 0.16in; font-size: 10.4pt; }
+.opn-print-mode .opn-issue .opn-main .opn-callout { padding: 0.13in 0.16in; font-size: calc(var(--opn-print-body) * .912); }
 .opn-print-mode .opn-main .opn-callout :is(h2, h3) { font-size: 14pt; margin-bottom: 0.06in; }
-.opn-print-mode .opn-main .opn-callout p, .opn-print-mode .opn-main .opn-callout ul { font-size: 10.4pt; line-height: 1.35; }
+.opn-print-mode .opn-main .opn-callout p, .opn-print-mode .opn-main .opn-callout ul { font-size: calc(var(--opn-print-body) * .912); line-height: 1.35; }
 .opn-print-mode .opn-main .opn-callout ul { padding-left: 0.16in; }
 .opn-print-mode .opn-sheet-footer { padding: 0.08in 0.14in; font-size: 7.5pt; }
 .opn-print-mode .opn-sheet[data-print-overflow="true"] { outline: 4px solid #b32d2e; outline-offset: 4px; }
+/* Masthead layout on paper: masthead, page, and a footer only as tall as its text. */
+.opn-print-mode .opn-sheet--top { grid-template-rows: auto minmax(0, 1fr) auto; }
+.opn-print-mode .opn-sheet--top .opn-sheet-footer { padding: 0.05in 0.14in; font-size: 9pt; }
+.opn-print-mode .opn-masthead { padding: 0.1in 0.14in 0.12in; font-size: 10.5pt; }
+.opn-print-mode .opn-sidebar.opn-masthead :is(h2, h3) { margin-top: 0; }
+.opn-print-mode .opn-sidebar.opn-masthead .opn-contact-card { margin: 0; padding: 0.07in 0.12in; font-size: 8.2pt; }
+.opn-print-mode .opn-masthead .opn-contact-card p { line-height: 1.25; margin: 0; }
+.opn-print-mode .opn-masthead .opn-contact-card .wp-block-image:is(.alignleft, .alignright) { margin-top: 0 !important; margin-bottom: 0 !important; }
+.opn-print-mode .opn-masthead .opn-masthead-bar { margin-top: 0.08in !important; }
+.opn-print-mode .opn-sheet--framed { padding: 0.14in; row-gap: 0.08in; }
+.opn-print-mode .opn-sheet--framed .opn-main { border-radius: 0.2in; padding-block: 0.06in; }
+.opn-print-mode .opn-sheet--framed.opn-sheet--top .opn-masthead { padding: 0 0.04in; }
+.opn-print-mode :where(.opn-sheet) :where(ul, ol) { padding-left: 0.24in; margin: 0 0 0.08in; }
+.opn-print-mode :where(.opn-sheet) li { margin-bottom: 0.05in; line-height: 1.32; }
+.opn-print-mode .opn-issue .wp-block-group.is-style-opn-box.is-style-opn-box:not([style*="padding"]) { padding: 0.07in 0.12in !important; }
+.opn-print-mode .opn-issue .wp-block-column > .wp-block-group.is-style-opn-box:not(:first-child) { margin-top: 0.09in !important; }
+.opn-print-mode .opn-issue .is-style-opn-box :is(h2, h3) { margin-bottom: 0.04in; }
+.opn-print-mode .opn-issue .is-style-opn-box .wp-block-image { margin-bottom: 0.05in; }
+.opn-print-mode .opn-sheet .opn-main > :is(.opn-source-front, .opn-source-back) > .wp-block-columns { padding-inline: 0.14in; }
+/* Flyers and posters in a box, and photos sized from the photo menu, show the whole picture: never cropped. */
+.opn-print-mode .opn-main :is(.is-style-opn-box, .opn-photo-small, .opn-photo-medium, .opn-photo-large) img { max-height: none; object-fit: contain; }
+.opn-print-mode .opn-masthead .opn-masthead-bar { font-size: 10pt; padding: 0.04in 0.18in !important; }
+:is(.opn-sheet, .opn-web) li:empty { display: none; }
 
 @page { size: letter portrait; margin: 0.25in; }
 @media print {

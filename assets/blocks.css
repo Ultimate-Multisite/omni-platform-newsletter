@@ -1,0 +1,51 @@
+/*
+ * Newsletter block styles, shared by the editor canvas, the website and the printed pages.
+ * Colours come from the issue's colour scheme (--opn-* variables). Email clients
+ * cannot load these fonts or shapes; the email keeps the text, colours and order.
+ *
+ * Fonts: Fredoka (SIL Open Font License 1.1) and Permanent Marker (Apache License 2.0),
+ * Latin subset, bundled so every computer prints them the same way. See assets/fonts/.
+ */
+@font-face { font-family: "OPN Fredoka"; src: url(fonts/fredoka-latin-wght.woff2) format("woff2"); font-weight: 300 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "OPN Marker"; src: url(fonts/permanent-marker-latin.woff2) format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+
+:root {
+    --opn-font-playful: "OPN Fredoka", "Arial Rounded MT Bold", "Trebuchet MS", sans-serif;
+    --opn-font-marker: "OPN Marker", "Segoe Print", "Bradley Hand", cursive;
+}
+
+/* Heading styles. */
+.is-style-opn-playful { font-family: var(--opn-font-playful) !important; font-weight: 700 !important; letter-spacing: .01em; }
+.is-style-opn-handwritten { font-family: var(--opn-font-marker) !important; font-weight: 400 !important; letter-spacing: .02em; transform: rotate(-2deg); }
+.is-style-opn-stamp { width: fit-content; max-width: 100%; padding: .06em .4em !important; border: .11em solid currentColor; border-radius: .14em; font-family: "Courier New", Courier, monospace !important; font-weight: 700 !important; text-transform: uppercase; letter-spacing: .12em; transform: rotate(-3deg); }
+.is-style-opn-stamp.has-text-align-center { margin-inline: auto !important; }
+.is-style-opn-stamp.has-text-align-right { margin-left: auto !important; }
+/* The newsletter's name, on a plaque in the motto colour (block colours chosen by the author win). */
+.is-style-opn-nameplate { width: fit-content; max-width: 100%; padding: .1em .45em .14em !important; border-radius: .28em; background-color: var(--opn-motto, #c9a46c); color: var(--opn-on-motto, #222); font-family: var(--opn-font-playful) !important; font-weight: 700 !important; font-size: 3em; line-height: 1.05 !important; letter-spacing: .01em; text-shadow: .035em .035em 0 var(--opn-paper, #fff), -.035em -.035em 0 var(--opn-paper, #fff), .035em -.035em 0 var(--opn-paper, #fff), -.035em .035em 0 var(--opn-paper, #fff); }
+.is-style-opn-nameplate.has-text-align-center { margin-inline: auto !important; }
+/* Section heading colours (sidebar, masthead) must not repaint the plaque; colours the author picked still win. */
+.wp-block-heading.is-style-opn-nameplate:not(.has-text-color) { color: var(--opn-on-motto, #222); }
+.wp-block-heading.is-style-opn-nameplate:not(.has-background) { background-color: var(--opn-motto, #c9a46c); }
+
+/* Photo sizes from the "Photo size and text wrap" menu: a share of the column, on screen and on paper. */
+.wp-block-image.opn-photo-small { width: 20% !important; max-width: 20% !important; }
+.wp-block-image.opn-photo-medium { width: 32% !important; max-width: 32% !important; }
+.wp-block-image.opn-photo-large { width: 48% !important; max-width: 48% !important; }
+.wp-block-image:is(.opn-photo-small, .opn-photo-medium, .opn-photo-large) img { width: 100% !important; height: auto; }
+.wp-block-image.aligncenter:is(.opn-photo-small, .opn-photo-medium, .opn-photo-large) { margin-inline: auto !important; }
+
+/* Paragraph style: a rounded pill in the tag colour, sized to its text. */
+.is-style-opn-pill { width: fit-content; max-width: 100%; padding: .22em 1em !important; border-radius: 999px; background-color: var(--opn-accent, #ffda36); color: var(--opn-on-accent, #222); font-weight: 700; }
+.is-style-opn-pill.has-text-align-center { margin-inline: auto !important; }
+.is-style-opn-pill.has-text-align-right { margin-left: auto !important; }
+
+/* Group style: a rounded box with a border in the tag colour and a light tint of it inside. */
+.wp-block-group.is-style-opn-box:not([style*="padding"]) { padding: .8em 1em !important; }
+.wp-block-group.is-style-opn-box { border: 3px solid var(--opn-accent, #ffda36); border-radius: 16px; background-color: color-mix(in srgb, var(--opn-accent, #ffda36) 16%, var(--opn-paper, #fff)); }
+.wp-block-group.is-style-opn-box > :first-child { margin-top: 0; }
+.wp-block-group.is-style-opn-box > :last-child { margin-bottom: 0; }
+
+/* The masthead bar: newsletter details on one rounded strip in the tag colour. */
+.opn-masthead-bar { padding: .3em 1.2em !important; border-radius: 999px; background-color: var(--opn-accent, #ffda36); color: var(--opn-on-accent, #222); font-weight: 700; }
+.opn-masthead-bar .wp-block-columns { align-items: center; margin: 0 !important; }
+.opn-masthead-bar p { margin: 0 !important; }
