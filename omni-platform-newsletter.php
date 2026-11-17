@@ -286,6 +286,34 @@ function hasOwnTextColor(array $block): bool
     return !empty($block['attrs']['textColor']) || !empty($block['attrs']['style']['color']['text']);
 }
 
+/**
+ * Put a text colour on the block's own HTML element too, as the editor does for colours the
+ * author picks. Newspack's WooCommerce email engine otherwise paints every heading in the
+ * theme's heading colour, ignoring the colour in the block's attributes.
+ */
+function inlineTextColor(array $block, string $color): array
+{
+    $hex = normalizeHex($color);
+    if ($hex === '' || !class_exists('WP_HTML_Tag_Processor')) {
+        return $block;
+    }
+    $paint = function (string $html) use ($hex): string {
+        $tag = new \WP_HTML_Tag_Processor($html);
+        if (!$tag->next_tag()) {
+            return $html;
+        }
+        $style = (string) preg_replace('/(?<![a-z-])color\s*:[^;]*;?/i', '', (string) $tag->get_attribute('style'));
+        $tag->set_attribute('style', trim('color:' . $hex . ';' . $style));
+        return $tag->get_updated_html();
+    };
+    $block['innerHTML'] = $paint((string) ($block['innerHTML'] ?? ''));
+    if (isset($block['innerContent'][0]) && is_string($block['innerContent'][0])) {
+        $block['innerContent'][0] = $paint($block['innerContent'][0]);
+    }
+
+    return $block;
+}
+
 /** Give headings, the title and the issue date the same colours as the printed letter. */
 function styleEmailBlock(array $block, string $region, array $colors): array
 {
@@ -294,8 +322,10 @@ function styleEmailBlock(array $block, string $region, array $colors): array
     $own = hasOwnTextColor($block);
     if (in_array('opn-title', $classes, true) && !$own) {
         $block['attrs']['style']['color']['text'] = $regionColors['title'] ?? $regionColors['heading'];
+        $block = inlineTextColor($block, $block['attrs']['style']['color']['text']);
     } elseif (($block['blockName'] === 'core/heading' || in_array('opn-kicker', $classes, true)) && !$own) {
         $block['attrs']['style']['color']['text'] = $regionColors['heading'];
+        $block = inlineTextColor($block, $regionColors['heading']);
     }
     if ($block['blockName'] === 'core/paragraph' && array_intersect(['opn-issue-label', 'is-style-opn-label', 'is-style-opn-tag'], $classes)) {
         // Colours the author picked for this label win over the scheme's label colours.
@@ -442,6 +472,28 @@ add_filter('template_include', function ($template) {
 
     return $template;
 }, 999);
+
+/**
+ * With Newspack's WooCommerce email engine switched on, its email-editor package
+ * replaces the public single-newsletter template with a bare email preview (no
+ * site header, footer or styles). Omni issues have their own website view, so
+ * keep the theme's template for them: remember it just before the package runs
+ * and restore it if the package swapped in its preview template.
+ */
+function keepThemeTemplate(string $template, bool $restore = false): string
+{
+    static $theme = '';
+    if (!$restore) {
+        $theme = $template;
+        return $template;
+    }
+
+    $isPreview = str_ends_with(wp_normalize_path($template), '/Templates/single-email-post-template.php');
+    return $isPreview && $theme !== '' && isIssue(get_post()) ? $theme : $template;
+}
+
+add_filter('single_template', fn($template) => keepThemeTemplate((string) $template), 9);
+add_filter('single_template', fn($template) => keepThemeTemplate((string) $template, true), 11);
 
 /** Use Pro Print because Print My Blog Quick Print rejects custom post types. */
 function printUrl(\WP_Post $post): string

@@ -205,8 +205,9 @@ add_filter('default_content', function ($content, $post) {
 // Newspack titles new newsletters with today's date; a month name reads better for a monthly letter.
 add_filter('default_title', function ($title, $post) {
     if ($post instanceof \WP_Post && $post->post_type === 'newspack_nl_cpt') {
+        // The issue month carried from the previous issue (set when the draft was created), else this month.
         /* translators: %s: month and year */
-        return sprintf(__('%s Newsletter', 'omni-platform-newsletter'), wp_date('F Y'));
+        return sprintf(__('%s Newsletter', 'omni-platform-newsletter'), issueDetails($post)['issue_date']);
     }
 
     return $title;

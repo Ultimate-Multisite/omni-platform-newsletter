@@ -78,6 +78,8 @@ Filters: `omni_platform_newsletter_palette`, `omni_platform_newsletter_starter_p
 * Editor: wrapped photos float in the canvas as they print, and empty columns show a visible area to click.
 * Print text uses Arial (or the metric-identical Liberation Sans/Arimo) instead of the theme's system-font stack, so a page that fits in one browser fits in Chrome, Firefox and Safari alike (previously some issues overflowed only in Firefox).
 * A masthead design switched to the sidebar layout stacks neatly instead of squeezing its columns side by side.
+* Works with Newspack's WooCommerce email engine (`newspack_newsletters_use_woo_renderer`): published issues keep the theme's page and Omni's website view instead of the engine's bare email preview, and headings keep the scheme colours in its emails (they are now also written on the heading itself).
+* A new issue's default title uses its own issue month (carried from the previous issue), not today's month.
 * Issue details are filled in as plain text, so text-only email reads "Volume 05, Issue #11" without stray spaces; contact cards inside columns keep their colours in email.
 
 = 0.4.0 =
