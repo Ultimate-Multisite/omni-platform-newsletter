@@ -205,8 +205,9 @@ add_filter('default_content', function ($content, $post) {
 // Newspack titles new newsletters with today's date; a month name reads better for a monthly letter.
 add_filter('default_title', function ($title, $post) {
     if ($post instanceof \WP_Post && $post->post_type === 'newspack_nl_cpt') {
+        // The issue month carried from the previous issue (set when the draft was created), else this month.
         /* translators: %s: month and year */
-        return sprintf(__('%s Newsletter', 'omni-platform-newsletter'), wp_date('F Y'));
+        return sprintf(__('%s Newsletter', 'omni-platform-newsletter'), issueDetails($post)['issue_date']);
     }
 
     return $title;
@@ -233,7 +234,9 @@ function enqueueCanvasLabels(): void
     }
 
     $labels = [
-        'sidebar' => __('Sidebar · printed beside both pages, and once at the end of the email', 'omni-platform-newsletter'),
+        'sidebar' => sharedArea($post) === 'top'
+            ? __('Masthead · printed across the top of both pages, and first in the email', 'omni-platform-newsletter')
+            : __('Sidebar · printed beside both pages, and once at the end of the email', 'omni-platform-newsletter'),
         'front' => __('Front page', 'omni-platform-newsletter'),
         'back' => __('Back page', 'omni-platform-newsletter'),
         'footer' => __('Footer · printed at the bottom of both pages', 'omni-platform-newsletter'),
@@ -249,7 +252,17 @@ function enqueueCanvasLabels(): void
     // Omni flattens story and callout groups for email (see emailBlocks()), so Newspack's
     // "Nested group" warning does not apply inside the four sections.
     $css .= '.editor-styles-wrapper [class*="opn-source-"] .newspack-newsletters__editor-block__warning{display:none;}';
+    // Inserted issue details (month, volume, number, page) are filled in when shown, printed or emailed.
+    $css .= '.editor-styles-wrapper .opn-detail{border-radius:3px;background:#3858e91a;box-shadow:0 0 0 1px #3858e966;}';
+    // Photos placed left or right wrap the text, as they do on the page and on paper.
+    $css .= '.editor-styles-wrapper [class*="opn-source-"] .wp-block-image.alignleft{float:left;margin:.25em 1.1em .5em 0!important;}'
+        . '.editor-styles-wrapper [class*="opn-source-"] .wp-block-image.alignright{float:right;margin:.25em 0 .5em 1.1em!important;}'
+        . '.editor-styles-wrapper [class*="opn-source-"] .wp-block-group{display:flow-root;}'
+        // An empty column is otherwise invisible, with nothing to click to start filling it.
+        . '.editor-styles-wrapper [class*="opn-source-"] .wp-block-column:not(:has([data-type])){min-height:96px;border:1px dashed #a7aab4;border-radius:6px;}';
 
+    wp_register_style('omni-platform-newsletter-blocks', plugins_url('assets/blocks.css', __DIR__ . '/../omni-platform-newsletter.php'), [], VERSION);
+    wp_enqueue_style('omni-platform-newsletter-blocks');
     wp_register_style('omni-platform-newsletter-canvas', false, [], VERSION);
     wp_enqueue_style('omni-platform-newsletter-canvas');
     wp_add_inline_style('omni-platform-newsletter-canvas', $css);
@@ -258,6 +271,11 @@ function enqueueCanvasLabels(): void
 add_action('enqueue_block_assets', __NAMESPACE__ . '\\enqueueCanvasLabels');
 // Newspack strips canvas assets that are not on its allowlist.
 add_filter('newspack_newsletters_allowed_editor_actions', fn(array $actions) => [...$actions, __NAMESPACE__ . '\\enqueueCanvasLabels']);
+
+/** The QR code block turns itself into an ordinary image, so it is safe in every output. */
+add_filter('newspack_newsletters_allowed_block_types', function ($allowed) {
+    return is_array($allowed) ? [...$allowed, 'omni-platform-newsletter/qr-code'] : $allowed;
+});
 
 /** Print My Blog's editor buttons and post-type switcher are engine tools. */
 add_action('enqueue_block_editor_assets', function () {
@@ -280,6 +298,11 @@ add_action('save_post_newspack_nl_cpt', function ($id, $post, $update) {
     // Match the printed letter's typeface (Newspack defaults the email body to Georgia).
     update_post_meta($id, 'font_header', 'Arial');
     update_post_meta($id, 'font_body', 'Arial');
+    // The shared section comes from the latest issue (newIssueContent()), so its layout and numbering do too.
+    $previous = latestIssue((int) $id);
+    if ($previous) {
+        carryDetails($previous, (int) $id);
+    }
 }, 20, 3);
 
 /** Copy an issue into a new draft: the quickest way to start next month's edition. */
@@ -311,6 +334,8 @@ add_action('admin_post_opn_duplicate', function () {
             update_post_meta($id, $key, $value);
         }
     }
+    // Same layout and volume; the next month and issue number.
+    carryDetails($source, (int) $id);
 
     wp_safe_redirect(add_query_arg('opn_notice', 'copied', get_edit_post_link($id, 'raw')));
     exit;
@@ -600,6 +625,11 @@ add_action('enqueue_block_editor_assets', function () {
     wp_enqueue_script('omni-platform-newsletter-editor', plugins_url('assets/editor.js', __DIR__ . '/../omni-platform-newsletter.php'), $deps, VERSION, true);
     wp_enqueue_script('omni-platform-newsletter-colors', plugins_url('assets/colors.js', __DIR__ . '/../omni-platform-newsletter.php'), [...$deps, 'wp-blocks', 'omni-platform-newsletter-editor'], VERSION, true);
     wp_localize_script('omni-platform-newsletter-colors', 'omniNewsletterColors', colorEditorData($post));
+    wp_enqueue_script('omni-platform-newsletter-layout', plugins_url('assets/layout.js', __DIR__ . '/../omni-platform-newsletter.php'), [...$deps, 'wp-blocks', 'wp-block-editor', 'wp-rich-text', 'wp-hooks', 'wp-compose', 'omni-platform-newsletter-editor'], VERSION, true);
+    wp_localize_script('omni-platform-newsletter-layout', 'omniNewsletterLayout', detailsEditorData($post) + [
+        'qrPath' => '/' . REST_NAMESPACE . '/qr',
+        'canUpload' => current_user_can('upload_files'),
+    ]);
     wp_enqueue_style('omni-platform-newsletter-admin', plugins_url('assets/admin.css', __DIR__ . '/../omni-platform-newsletter.php'), [], VERSION);
 
     if (!currentUserManagesEngines()) {

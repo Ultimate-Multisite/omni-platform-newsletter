@@ -10,4 +10,7 @@
 - Newspack strips `enqueue_block_assets` callbacks from the newsletter canvas unless they are named in `newspack_newsletters_allowed_editor_actions`; canvas assets must use named functions on that allowlist.
 - Colors come from the theme palette (`includes/palette.php`); never hard-code organization colors. The website view renders inside the theme's post template; only `?opn_view=print` uses `web-template.php`.
 - Keep organization-specific wording, assets, colors, and destinations out of the default pattern. Organizations use the `omni_platform_newsletter_starter_content` and `omni_platform_newsletter_email_colors` filters.
+- The shared `opn-source-sidebar` section is printed beside each page or, with `_omni_platform_newsletter_shared_area = top`, as a masthead across the top; keep both layouts working in web, print and email.
+- Issue details are `<span class="opn-detail" data-opn-detail="…">` in stored text; fill them through `fillDetails()` / `emailDetailBlock()` in every output, and drop page-number text outside print.
+- New editor tools must resolve to core blocks before email (the QR code block becomes a core/image); Newspack's email renderer cannot render custom blocks.
 - Run `composer test` before delivery.

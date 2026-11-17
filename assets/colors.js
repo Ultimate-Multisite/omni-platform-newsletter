@@ -52,7 +52,11 @@
         const lb = luminance(b);
         return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
     }
-    const readableOn = (bg, text) => (contrast(bg, '#ffffff') >= contrast(bg, text) ? '#ffffff' : text);
+    /* Same rule as readableOn() in includes/palette.php, including near-black for dark themes. */
+    const readableOn = (bg, text) => {
+        const best = contrast(bg, '#ffffff') >= contrast(bg, text) ? '#ffffff' : text;
+        return contrast(bg, '#111111') > contrast(bg, best) ? '#111111' : best;
+    };
 
     const roles = [].concat(...Object.values(data.regions).map((r) => Object.values(r.slots)));
 
@@ -89,8 +93,11 @@
         const d = data.defaults;
         const out = {};
         Object.values(data.regions).forEach(({ slots }) => {
-            const bg = overrides[slots.background] || d[slots.background];
+            const bg = overrides[slots.background] || d[slots.background] || '';
             out[slots.background] = bg;
+            if (!slots.text) {
+                return;
+            }
             const text = overrides[slots.text]
                 || (overrides[slots.background] ? readableOn(bg, data.baseText) : d[slots.text]);
             out[slots.text] = text;
@@ -101,6 +108,8 @@
                 }
             });
         });
+        // No page border unless chosen: it follows the page colour.
+        out.frame = overrides.frame || out.page;
         return out;
     }
 
@@ -113,8 +122,11 @@
     function canvasCss(c) {
         const w = '.editor-styles-wrapper ';
         const headings = ':where(h1,h2,h3,h4,h5,h6)';
+        // Variables for the shared block styles (assets/blocks.css): boxes, pills, nameplate.
+        const vars = (x) => `--opn-paper:${x.page};--opn-accent:${x.label};--opn-on-accent:${x.labelText};--opn-motto:${x.motto};--opn-on-motto:${x.mottoText};--opn-frame:${x.frame};`;
         const page = (sel, x) => [
-            `${w}${sel}{background:${x.page}!important;color:${x.pageText};}`,
+            `${w}${sel}{${vars(x)}background:${x.page}!important;color:${x.pageText};}`,
+            x.frame !== x.page ? `${w}${sel}{box-shadow:0 0 0 10px ${x.frame};}` : '',
             `${w}${sel} ${headings},${w}${sel} .opn-kicker{color:${x.heading};}`,
             `${w}${sel} .opn-title{color:${x.title};}`,
             `${w}${sel} :is(.opn-issue-label,.is-style-opn-label,.is-style-opn-tag){background:${x.label};color:${x.labelText};padding:6px 14px;font-weight:700;text-align:right;}`,
@@ -125,7 +137,7 @@
         ].join('');
         const s = c.front;
         return page('.opn-source-front', c.front) + page('.opn-source-back', c.back)
-            + `${w}.opn-source-sidebar{background:${s.sidebar}!important;color:${s.sidebarText};}`
+            + `${w}.opn-source-sidebar{${vars(s)}background:${s.sidebar}!important;color:${s.sidebarText};}`
             + `${w}.opn-source-sidebar ${headings}{color:${s.sidebarHeading};}`
             + `${w}.opn-source-sidebar a{color:inherit;}`
             + `${w}.opn-source-sidebar .opn-motto{background:${s.motto};color:${s.mottoText};padding:16px;text-align:center;}`
@@ -193,7 +205,7 @@
             'aria-pressed': active,
             title: sprintf(__('Edit the %s colours', td), SIDE_LABELS[side].toLowerCase()),
         },
-        el('span', { className: 'opn-mini__sheet', 'aria-hidden': true },
+        el('span', { className: 'opn-mini__sheet', 'aria-hidden': true, style: c.frame !== c.page ? { outline: '3px solid ' + c.frame, outlineOffset: '-1px' } : undefined },
             el('span', { className: 'opn-mini__side', style: { background: c.sidebar } },
                 el('span', { className: 'opn-mini__motto', style: { background: c.motto } }, line(c.mottoText), line(c.mottoText)),
                 el('span', { className: 'opn-mini__card', style: { background: c.card } }, line(c.cardHeading, 'h'), line(c.cardText)),
@@ -210,7 +222,8 @@
     /** One colour of one area, with a palette and a reset. */
     function Swatch({ slot, role, value, isSet, options, onChange }) {
         const name = SLOT_LABELS[slot];
-        const resetLabel = slot === 'background' ? __('Use the site colour', td) : __('Automatic', td);
+        const resetLabel = role === 'frame' ? __('Same as the page (no border)', td)
+            : (slot === 'background' ? __('Use the site colour', td) : __('Automatic', td));
         return el(Dropdown, {
             className: 'opn-swatch',
             popoverProps: { placement: 'left-start', offset: 12 },

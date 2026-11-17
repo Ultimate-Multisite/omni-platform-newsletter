@@ -33,6 +33,11 @@ function colorRegions(): array
             'help' => __('The main area with your stories.', 'omni-platform-newsletter'),
             'slots' => ['background' => 'page', 'text' => 'pageText', 'heading' => 'heading', 'title' => 'title'],
         ],
+        'frame' => [
+            'label' => __('Page border', 'omni-platform-newsletter'),
+            'help' => __('A coloured edge around each printed page, with rounded corners. Same as the page: no border.', 'omni-platform-newsletter'),
+            'slots' => ['background' => 'frame'],
+        ],
         'label' => [
             'label' => __('Date tags', 'omni-platform-newsletter'),
             'help' => __('Issue and photo labels (the “Issue label” style).', 'omni-platform-newsletter'),
@@ -50,7 +55,7 @@ function colorRegions(): array
         ],
         'motto' => [
             'label' => __('Motto box', 'omni-platform-newsletter'),
-            'help' => __('The motto at the top of the sidebar.', 'omni-platform-newsletter'),
+            'help' => __('The motto at the top of the sidebar, and the plaque behind a “Nameplate” heading.', 'omni-platform-newsletter'),
             'slots' => ['background' => 'motto', 'text' => 'mottoText'],
         ],
         'card' => [
@@ -107,11 +112,12 @@ function colorSchemes(): array
     $schemes = [
         ['slug' => 'site', 'label' => __('Site colours', 'omni-platform-newsletter'), 'colors' => []],
         ['slug' => 'autumn-sky', 'label' => __('Autumn sky', 'omni-platform-newsletter'), 'colors' => [
-            'page' => '#5b72f2', 'pageText' => '#ffffff', 'heading' => '#ffffff', 'title' => '#ffc93c',
+            // #3f51c7: white text 6.5:1 and the yellow title 4.3:1 (the earlier #5b72f2 was 4.1:1 and 2.7:1).
+            'page' => '#3f51c7', 'pageText' => '#ffffff', 'heading' => '#ffffff', 'title' => '#ffc93c',
             'label' => '#ffc93c', 'labelText' => '#323650',
             'callout' => '#323650', 'calloutHeading' => '#ffffff',
             'sidebar' => '#565e70', 'sidebarHeading' => '#ffb347',
-            'motto' => '#323650', 'card' => '#5b72f2', 'cardHeading' => '#ffc93c',
+            'motto' => '#323650', 'card' => '#3f51c7', 'cardHeading' => '#ffc93c',
             'footer' => '#000000',
         ]],
         ['slug' => 'autumn-harvest', 'label' => __('Autumn harvest', 'omni-platform-newsletter'), 'colors' => [
@@ -142,6 +148,13 @@ function colorSchemes(): array
             'sidebar' => '#0f7c8c', 'sidebarHeading' => '#ffd166',
             'motto' => '#0a5a66', 'card' => '#0a5a66', 'cardHeading' => '#ffd166',
             'footer' => '#06343b',
+        ]],
+        ['slug' => 'campfire', 'label' => __('Campfire', 'omni-platform-newsletter'), 'colors' => [
+            'page' => '#fffbea', 'frame' => '#3b4a2e', 'heading' => '#2b62a8', 'title' => '#3b2f1e',
+            'label' => '#4f8a3c', 'callout' => '#f6edb8', 'calloutHeading' => '#c8442f',
+            'sidebar' => '#3b4a2e', 'sidebarHeading' => '#f4e47c',
+            'motto' => '#c9a46c', 'card' => '#f4e47c', 'cardHeading' => '#3b2f1e',
+            'footer' => '#3b4a2e',
         ]],
         ['slug' => 'christmas', 'label' => __('Christmas', 'omni-platform-newsletter'), 'colors' => [
             'page' => '#ffffff', 'heading' => '#1e5631', 'title' => '#b3202a',
@@ -222,8 +235,11 @@ function resolveColors(array $overrides): array
     $out = [];
     foreach (colorRegions() as $region) {
         $slots = $region['slots'];
-        $bg = $overrides[$slots['background']] ?? $defaults[$slots['background']];
+        $bg = $overrides[$slots['background']] ?? $defaults[$slots['background']] ?? '';
         $out[$slots['background']] = $bg;
+        if (!isset($slots['text'])) {
+            continue;
+        }
         $text = $overrides[$slots['text']]
             ?? (isset($overrides[$slots['background']]) ? readableOn($bg, $base) : $defaults[$slots['text']]);
         $out[$slots['text']] = $text;
@@ -235,8 +251,19 @@ function resolveColors(array $overrides): array
             }
         }
     }
+    // No page border unless the author picks one: it follows the page colour.
+    $out['frame'] = $overrides['frame'] ?? $out['page'];
 
     return $out;
+}
+
+/** $a mixed into $b by $weight (0–1), as #rrggbb. */
+function mixColors(string $a, string $b, float $weight): string
+{
+    $x = hexToRgb($a) ?? [0, 0, 0];
+    $y = hexToRgb($b) ?? [255, 255, 255];
+
+    return rgbToHex(array_map(fn($i) => $x[$i] * $weight + $y[$i] * (1 - $weight), [0, 1, 2]));
 }
 
 /**
@@ -262,7 +289,7 @@ function issueColors(?\WP_Post $post): array
 function colorVars(array $c): string
 {
     $vars = [
-        'paper' => 'page', 'text' => 'pageText', 'heading' => 'heading', 'title' => 'title',
+        'paper' => 'page', 'frame' => 'frame', 'text' => 'pageText', 'heading' => 'heading', 'title' => 'title',
         'accent' => 'label', 'on-accent' => 'labelText',
         'dark' => 'callout', 'on-dark' => 'calloutText', 'callout-heading' => 'calloutHeading',
         'sidebar' => 'sidebar', 'on-sidebar' => 'sidebarText', 'sidebar-heading' => 'sidebarHeading',

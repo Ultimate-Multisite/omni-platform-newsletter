@@ -89,3 +89,8 @@ a.opn-card:hover, a.opn-card:focus { border-color: #2271b1; box-shadow: 0 0 0 1p
 .opn-swatch__popover { width: 260px; padding: 12px; }
 .opn-swatch__reset.components-button { width: 100%; justify-content: center; margin-top: 12px; }
 .opn-colors__reset.components-button { margin-top: 12px; }
+/* Layout & issue details panel, and the QR code block form. */
+.opn-layout__pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.opn-layout .components-radio-control__option { margin-bottom: 6px; }
+.opn-qr-form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; width: 100%; }
+.opn-qr-form .components-base-control { flex: 1 1 240px; }

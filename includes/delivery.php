@@ -177,9 +177,16 @@ function recordEmailSource(int $metaId, int $postId, string $metaKey): void
 function emailSourceHash(\WP_Post $post): string
 {
     $colors = (string) get_post_meta($post->ID, COLORS_META_KEY, true);
+    // Hash what the email actually uses: an issue with some colours chosen still follows the
+    // site palette for the rest, so a palette change must make its email stale.
+    if ($colors !== '') {
+        $colors = (string) wp_json_encode(issueColors($post));
+    }
+    // The layout decides the email order; issue details fill in text.
+    $layout = implode('|', array_map(fn($key) => (string) get_post_meta($post->ID, $key, true), [LAYOUT_META, MONTH_META, VOLUME_META, NUMBER_META]));
 
-    // Issues without their own colours keep the content-only hash recorded before colours existed.
-    return md5($post->post_content . ($colors !== '' ? "\0" . $colors : ''));
+    // Issues without their own colours or details keep the hash recorded before those existed.
+    return md5($post->post_content . ($colors !== '' ? "\0" . $colors : '') . ($layout !== '|||' ? "\0" . $layout : ''));
 }
 
 add_action('added_post_meta', fn($metaId, $postId, $metaKey) => recordEmailSource((int) $metaId, (int) $postId, (string) $metaKey), 10, 3);

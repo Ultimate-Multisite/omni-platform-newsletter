@@ -65,10 +65,16 @@ function contrast(string $a, string $b): float
     return (max($la, $lb) + 0.05) / (min($la, $lb) + 0.05);
 }
 
-/** The more readable of the theme text color and white on a background. */
+/**
+ * The most readable of white, the theme text colour and near-black on a background.
+ * Near-black matters for dark themes, whose text colour is light: otherwise a light
+ * background would get light text.
+ */
 function readableOn(string $background, string $text): string
 {
-    return contrast($background, '#ffffff') >= contrast($background, $text) ? '#ffffff' : $text;
+    $best = contrast($background, '#ffffff') >= contrast($background, $text) ? '#ffffff' : $text;
+
+    return contrast($background, '#111111') > contrast($background, $best) ? '#111111' : $best;
 }
 
 /** Resolve a theme.json color value (hex, var:preset|color|slug or var(--wp--preset--color--slug)). */
