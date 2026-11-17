@@ -243,7 +243,7 @@ function enqueueCanvasLabels(): void
     foreach ($labels as $role => $label) {
         $selector = '.editor-styles-wrapper .opn-source-' . $role;
         $css .= $selector . '{position:relative;margin:28px 0!important;padding:34px 18px 14px!important;border:2px dashed #a7aab4;border-radius:8px;background:' . $tints[$role] . ';}'
-            . $selector . '::before{content:' . wp_json_encode($label, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . ';position:absolute;top:8px;left:14px;font:600 12px/1.3 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:.04em;text-transform:uppercase;color:#2a4f9c;}';
+            . $selector . '::before{content:' . wp_json_encode($label, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . ';position:absolute;top:6px;left:12px;padding:2px 8px;border-radius:4px;background:#fff;box-shadow:0 0 0 1px #a7aab4;font:600 12px/1.3 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:.04em;text-transform:uppercase;color:#2a4f9c;z-index:2;}';
     }
 
     // Omni flattens story and callout groups for email (see emailBlocks()), so Newspack's
@@ -305,7 +305,7 @@ add_action('admin_post_opn_duplicate', function () {
         wp_die(esc_html($id->get_error_message()));
     }
 
-    foreach (['font_header', 'font_body', 'background_color', 'text_color', 'custom_css', 'preview_text'] as $key) {
+    foreach (['font_header', 'font_body', 'background_color', 'text_color', 'custom_css', 'preview_text', COLORS_META_KEY] as $key) {
         $value = get_post_meta($source->ID, $key, true);
         if ($value !== '') {
             update_post_meta($id, $key, $value);
@@ -598,6 +598,8 @@ add_action('enqueue_block_editor_assets', function () {
 
     $deps = ['wp-plugins', 'wp-editor', 'wp-edit-post', 'wp-element', 'wp-components', 'wp-data', 'wp-api-fetch', 'wp-i18n', 'wp-url', 'wp-notices', 'wp-dom-ready'];
     wp_enqueue_script('omni-platform-newsletter-editor', plugins_url('assets/editor.js', __DIR__ . '/../omni-platform-newsletter.php'), $deps, VERSION, true);
+    wp_enqueue_script('omni-platform-newsletter-colors', plugins_url('assets/colors.js', __DIR__ . '/../omni-platform-newsletter.php'), [...$deps, 'wp-blocks', 'omni-platform-newsletter-editor'], VERSION, true);
+    wp_localize_script('omni-platform-newsletter-colors', 'omniNewsletterColors', colorEditorData($post));
     wp_enqueue_style('omni-platform-newsletter-admin', plugins_url('assets/admin.css', __DIR__ . '/../omni-platform-newsletter.php'), [], VERSION);
 
     if (!currentUserManagesEngines()) {

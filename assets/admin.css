@@ -45,3 +45,47 @@ a.opn-card:hover, a.opn-card:focus { border-color: #2271b1; box-shadow: 0 0 0 1p
 .opn-send-modal { max-width: 480px; }
 .opn-send-modal__count { font-size: 15px; font-weight: 600; }
 .opn-send-modal__actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+
+/* Colours panel */
+.opn-colors__intro { margin: 0 0 12px; }
+.opn-colors__minis { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.opn-mini { display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 4px; border: 2px solid transparent; border-radius: 6px; background: none; cursor: pointer; font: inherit; }
+.opn-mini.is-active { border-color: var(--wp-admin-theme-color, #3858e9); }
+.opn-mini:focus-visible { outline: 2px solid var(--wp-admin-theme-color, #3858e9); outline-offset: 2px; }
+.opn-mini__label { font-size: 12px; font-weight: 600; color: #1e1e1e; text-align: center; }
+.opn-mini__sheet { display: grid; grid-template-columns: 28% 72%; grid-template-rows: 1fr 6%; aspect-ratio: 8.5 / 11; overflow: hidden; border-radius: 3px; box-shadow: 0 1px 4px #0003; background: #fff; }
+.opn-mini__side, .opn-mini__main { display: flex; flex-direction: column; gap: 3px; min-width: 0; padding-bottom: 4px; }
+.opn-mini__side { padding-inline: 0; }
+.opn-mini__side > .opn-mini__line { margin-inline: 4px; }
+.opn-mini__motto, .opn-mini__card { display: flex; flex-direction: column; gap: 3px; padding: 5px 4px; }
+.opn-mini__motto { align-items: center; padding-block: 8px; }
+.opn-mini__motto .opn-mini__line { width: 70%; }
+.opn-mini__photo { position: relative; height: 26%; margin: 4px 4px 0; background: linear-gradient(135deg, #c9ced6, #9aa3b2); }
+.opn-mini__tag { position: absolute; right: 0; bottom: -4px; width: 42%; height: 9px; }
+.opn-mini__title { height: 8px; width: 80%; margin: 6px 4px 2px; border-radius: 1px; }
+.opn-mini__main > .opn-mini__line { margin-inline: 4px; }
+.opn-mini__callout { display: flex; flex-direction: column; gap: 3px; margin-top: auto; padding: 5px 4px; }
+.opn-mini__footer { grid-column: 1 / -1; display: flex; align-items: center; padding: 0 4px; }
+.opn-mini__footer .opn-mini__line { width: 40%; }
+.opn-mini__line { display: block; height: 2px; width: 80%; border-radius: 1px; opacity: .9; }
+.opn-mini__line--h { height: 3px; width: 55%; }
+.opn-colors__sides { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: -4px 0 8px; }
+.opn-colors__copy.components-button { font-size: 12px; }
+.opn-colors__schemes { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; }
+.opn-colors .opn-panel__heading { margin: 16px 0 8px; }
+.opn-scheme.components-button { display: flex; flex-direction: column; align-items: stretch; gap: 4px; height: auto; padding: 6px; border: 1px solid #dcdcde; border-radius: 4px; text-align: left; }
+.opn-scheme.components-button.is-active { border-color: var(--wp-admin-theme-color, #3858e9); box-shadow: 0 0 0 1px var(--wp-admin-theme-color, #3858e9); background: #f0f4ff; color: #1e1e1e; }
+.opn-scheme__chips { display: flex; height: 16px; border-radius: 2px; overflow: hidden; box-shadow: inset 0 0 0 1px #0000001a; }
+.opn-scheme__chips span { flex: 1; }
+.opn-scheme__name { font-size: 12px; }
+.opn-colors__region { padding: 8px 0; border-top: 1px solid #f0f0f0; }
+.opn-colors__region-name { display: flex; flex-direction: column; font-weight: 600; margin-bottom: 4px; }
+.opn-colors__region-help { font-weight: 400; font-size: 12px; color: #50575e; }
+.opn-colors__swatches { display: flex; flex-wrap: wrap; gap: 4px 6px; }
+.opn-swatch__toggle.components-button { gap: 6px; height: 32px; padding: 0 8px 0 4px; border: 1px solid #dcdcde; border-radius: 16px; }
+.opn-swatch__chip { width: 22px; height: 22px; border-radius: 50%; box-shadow: inset 0 0 0 1px #0003; }
+.opn-swatch__chip.is-auto { box-shadow: inset 0 0 0 1px #0003, 0 0 0 2px #fff, 0 0 0 3px #c3c4c7; }
+.opn-swatch__name { font-size: 12px; }
+.opn-swatch__popover { width: 260px; padding: 12px; }
+.opn-swatch__reset.components-button { width: 100%; justify-content: center; margin-top: 12px; }
+.opn-colors__reset.components-button { margin-top: 12px; }

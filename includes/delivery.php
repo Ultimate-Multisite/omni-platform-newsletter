@@ -169,8 +169,17 @@ function recordEmailSource(int $metaId, int $postId, string $metaKey): void
 
     $post = get_post($postId);
     if ($post instanceof \WP_Post && isIssue($post)) {
-        update_post_meta($postId, EMAIL_SOURCE_META, md5($post->post_content));
+        update_post_meta($postId, EMAIL_SOURCE_META, emailSourceHash($post));
     }
+}
+
+/** What the email version depends on: the content and the issue's colours. */
+function emailSourceHash(\WP_Post $post): string
+{
+    $colors = (string) get_post_meta($post->ID, COLORS_META_KEY, true);
+
+    // Issues without their own colours keep the content-only hash recorded before colours existed.
+    return md5($post->post_content . ($colors !== '' ? "\0" . $colors : ''));
 }
 
 add_action('added_post_meta', fn($metaId, $postId, $metaKey) => recordEmailSource((int) $metaId, (int) $postId, (string) $metaKey), 10, 3);
@@ -244,7 +253,7 @@ function emailHtml(\WP_Post $post): string|\WP_Error
         return new \WP_Error('opn_email_missing', __('The email version has not been created yet. Save the newsletter, then try again.', 'omni-platform-newsletter'));
     }
 
-    if (get_post_meta($post->ID, EMAIL_SOURCE_META, true) !== md5($post->post_content)) {
+    if (get_post_meta($post->ID, EMAIL_SOURCE_META, true) !== emailSourceHash($post)) {
         return new \WP_Error('opn_email_stale', __('The email version is older than your latest changes. Save the newsletter, then try again.', 'omni-platform-newsletter'));
     }
 
