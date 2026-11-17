@@ -336,7 +336,8 @@ function styleEmailBlock(array $block, string $region, array $colors): array
             ]);
         $block['attrs']['align'] = 'right';
     }
-    if ($block['blockName'] === 'core/paragraph' && in_array('opn-motto', $classes, true) && empty($block['attrs']['style']['color']['background'])) {
+    // A background the author picked (custom or a preset slug) wins over the scheme's motto colour.
+    if ($block['blockName'] === 'core/paragraph' && in_array('opn-motto', $classes, true) && empty($block['attrs']['style']['color']['background']) && empty($block['attrs']['backgroundColor'])) {
         $block['attrs']['style']['color']['background'] = $colors['motto']['background'];
         if (!$own) {
             $block['attrs']['style']['color']['text'] = $colors['motto']['text'];

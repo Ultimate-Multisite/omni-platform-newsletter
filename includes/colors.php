@@ -112,11 +112,12 @@ function colorSchemes(): array
     $schemes = [
         ['slug' => 'site', 'label' => __('Site colours', 'omni-platform-newsletter'), 'colors' => []],
         ['slug' => 'autumn-sky', 'label' => __('Autumn sky', 'omni-platform-newsletter'), 'colors' => [
-            'page' => '#5b72f2', 'pageText' => '#ffffff', 'heading' => '#ffffff', 'title' => '#ffc93c',
+            // #3f51c7: white text 6.5:1 and the yellow title 4.3:1 (the earlier #5b72f2 was 4.1:1 and 2.7:1).
+            'page' => '#3f51c7', 'pageText' => '#ffffff', 'heading' => '#ffffff', 'title' => '#ffc93c',
             'label' => '#ffc93c', 'labelText' => '#323650',
             'callout' => '#323650', 'calloutHeading' => '#ffffff',
             'sidebar' => '#565e70', 'sidebarHeading' => '#ffb347',
-            'motto' => '#323650', 'card' => '#5b72f2', 'cardHeading' => '#ffc93c',
+            'motto' => '#323650', 'card' => '#3f51c7', 'cardHeading' => '#ffc93c',
             'footer' => '#000000',
         ]],
         ['slug' => 'autumn-harvest', 'label' => __('Autumn harvest', 'omni-platform-newsletter'), 'colors' => [

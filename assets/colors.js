@@ -52,7 +52,11 @@
         const lb = luminance(b);
         return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
     }
-    const readableOn = (bg, text) => (contrast(bg, '#ffffff') >= contrast(bg, text) ? '#ffffff' : text);
+    /* Same rule as readableOn() in includes/palette.php, including near-black for dark themes. */
+    const readableOn = (bg, text) => {
+        const best = contrast(bg, '#ffffff') >= contrast(bg, text) ? '#ffffff' : text;
+        return contrast(bg, '#111111') > contrast(bg, best) ? '#111111' : best;
+    };
 
     const roles = [].concat(...Object.values(data.regions).map((r) => Object.values(r.slots)));
 
